@@ -20,11 +20,7 @@ import XCTest
 import WireLinkPreview
 @testable import Wire
 
-class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
-
-    override func setUp() {
-        super.setUp()
-    }
+final class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
 
     func testPlainText() {
         // GIVEN
@@ -32,13 +28,20 @@ class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
         message.sender = otherUser
         
         // THEN
-        verify(message: message, waitForTextViewToLoad: true)
+        verify(message: message)
     }
     
     func testLinkPreview() {
         // GIVEN
         let linkURL = "http://www.example.com"
-        let article = ArticleMetadata(protocolBuffer: ZMLinkPreview.linkPreview(withOriginalURL: linkURL, permanentURL: linkURL, offset: 0, title: "Biggest catastrophe in history", summary: "", imageAsset: nil))
+        let linkPreview = LinkPreview.with {
+            $0.url = linkURL
+            $0.permanentURL = linkURL
+            $0.urlOffset = 0
+            $0.title = "Biggest catastrophe in history"
+            $0.summary = ""
+        }
+        let article = ArticleMetadata(protocolBuffer: linkPreview)
         let message = MockMessageFactory.textMessage(withText: "http://www.example.com")!
         message.sender = otherUser
         message.backingTextMessageData.backingLinkPreview = article
@@ -50,20 +53,26 @@ class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
     func testTextWithLinkPreview() {
         // GIVEN
         let linkURL = "http://www.example.com"
-        let article = ArticleMetadata(protocolBuffer: ZMLinkPreview.linkPreview(withOriginalURL: linkURL, permanentURL: linkURL, offset: 0
-            , title: "Biggest catastrophe in history", summary: "", imageAsset: nil))
+        let linkPreview = LinkPreview.with {
+            $0.url = linkURL
+            $0.permanentURL = linkURL
+            $0.urlOffset = 0
+            $0.title = "Biggest catastrophe in history"
+            $0.summary = ""
+        }
+        let article = ArticleMetadata(protocolBuffer: linkPreview)
         let message = MockMessageFactory.textMessage(withText: "What do you think about this http://www.example.com")!
         message.sender = otherUser
         message.backingTextMessageData.backingLinkPreview = article
         
         // THEN
-        verify(message: message, waitForTextViewToLoad: true)
+        verify(message: message)
     }
     
     func testTextWithQuote() {
         // GIVEN
         let conversation = createGroupConversation()
-        let quote = conversation.append(text: "Who is responsible for this!")
+        let quote = try! conversation.appendText(content: "Who is responsible for this!")
         (quote as? ZMMessage)?.serverTimestamp = Date.distantPast
         let message = MockMessageFactory.textMessage(withText: "I am")!
         message.sender = otherUser
@@ -71,15 +80,22 @@ class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
         message.backingTextMessageData.quote = (quote as Any as! ZMMessage)
         
         // THEN
-        verify(message: message, waitForTextViewToLoad: true)
+        verify(message: message)
     }
     
     func testTextWithLinkPreviewAndQuote() {
         // GIVEN
         let linkURL = "http://www.example.com"
-        let article = ArticleMetadata(protocolBuffer: ZMLinkPreview.linkPreview(withOriginalURL: linkURL, permanentURL: linkURL, offset: 5, title: "Biggest catastrophe in history", summary: "", imageAsset: nil))
+        let linkPreview = LinkPreview.with {
+            $0.url = linkURL
+            $0.permanentURL = linkURL
+            $0.urlOffset = 5
+            $0.title = "Biggest catastrophe in history"
+            $0.summary = ""
+        }
+        let article = ArticleMetadata(protocolBuffer: linkPreview)
         let conversation = createGroupConversation()
-        let quote = conversation.append(text: "Who is responsible for this!")
+        let quote = try! conversation.appendText(content: "Who is responsible for this!")
         (quote as? ZMMessage)?.serverTimestamp = Date.distantPast
         let message = MockMessageFactory.textMessage(withText: "I am http://www.example.com")!
         message.sender = otherUser
@@ -88,7 +104,7 @@ class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
         message.backingTextMessageData.quote = (quote as Any as! ZMMessage)
         
         // THEN
-        verify(message: message, waitForTextViewToLoad: true)
+        verify(message: message)
     }
     
     func testMediaPreviewAttachment() {
@@ -136,7 +152,14 @@ class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
     func testBlacklistedLinkPreview_YouTube() {
         // GIVEN
         let linkURL = "https://youtube.com/watch"
-        let article = ArticleMetadata(protocolBuffer: ZMLinkPreview.linkPreview(withOriginalURL: linkURL, permanentURL: linkURL, offset: 14, title: "Lagar mat med Fernando Di Luca", summary: "", imageAsset: nil))
+        let linkPreview = LinkPreview.with {
+            $0.url = linkURL
+            $0.permanentURL = linkURL
+            $0.urlOffset = 14
+            $0.title = "Lagar mat med Fernando Di Luca"
+            $0.summary = ""
+        }
+        let article = ArticleMetadata(protocolBuffer: linkPreview)
         let message = MockMessageFactory.textMessage(withText: "Look at this! https://www.youtube.com/watch?v=l7aqpSTa234")!
         message.sender = otherUser
         message.backingTextMessageData.backingLinkPreview = article
@@ -145,7 +168,7 @@ class ConversationTextMessageTests: ConversationCellSnapshotTestCase {
                            permalink: URL(string: "https://www.youtube.com/watch?v=l7aqpSTa234")!,
                            thumbnails: [], originalRange: NSRange(location: 14, length: 43))
         ]
-
+        
         // THEN
         verify(message: message)
     }

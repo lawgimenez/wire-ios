@@ -34,9 +34,9 @@ final class BackgroundViewController: UIViewController {
     private let user: UserType
     private let userSession: ZMUserSession?
     
-    public var darkMode: Bool = false {
+    var darkMode: Bool = false {
         didSet {
-            darkenOverlay.isHidden = !self.darkMode
+            darkenOverlay.isHidden = !darkMode
         }
     }
     
@@ -44,7 +44,7 @@ final class BackgroundViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
     
-    @objc public init(user: UserType, userSession: ZMUserSession?) {
+    init(user: UserType, userSession: ZMUserSession?) {
         self.user = user
         self.userSession = userSession
         super.init(nibName: .none, bundle: .none)
@@ -54,8 +54,8 @@ final class BackgroundViewController: UIViewController {
         }
         
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(colorSchemeChanged(_:)),
-                                               name: NSNotification.Name.SettingsColorSchemeChanged,
+                                               selector: #selector(colorSchemeChanged),
+                                               name: .SettingsColorSchemeChanged,
                                                object: nil)
     }
     
@@ -162,7 +162,7 @@ final class BackgroundViewController: UIViewController {
     }
     
     private func updateForColorScheme() {
-        self.darkMode = (ColorScheme.default.variant == .dark)
+        darkMode = ColorScheme.default.variant == .dark
     }
     
     func updateFor(imageMediumDataChanged: Bool, accentColorValueChanged: Bool) {
@@ -179,22 +179,19 @@ final class BackgroundViewController: UIViewController {
         }
     }
     
-    static let ciContext: CIContext = {
-        return CIContext()
-    }()
-    
     static let backgroundScaleFactor: CGFloat = 1.4
     
     static func blurredAppBackground(with imageData: Data) -> UIImage? {
-        return UIImage(from: imageData, withMaxSize: 40)?.desaturatedImage(with: BackgroundViewController.ciContext, saturation: 2)
+        return UIImage(from: imageData, withMaxSize: 40)?.desaturatedImage(with: CIContext.shared, saturation: 2)
     }
         
     fileprivate func setBackground(color: UIColor) {
         self.imageView.backgroundColor = color
     }
 
-    @objc public func colorSchemeChanged(_ object: AnyObject!) {
-        self.updateForColorScheme()
+    @objc
+    private func colorSchemeChanged() {
+        updateForColorScheme()
     }
 }
 

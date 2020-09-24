@@ -17,16 +17,24 @@
 //
 
 import WireCommonComponents
+import UIKit
 
 extension UIBarButtonItem {
 
-    @objc convenience init(icon: StyleKitIcon, style: UIBarButtonItem.Style = .plain, target: Any?, action: Selector?) {
+    convenience init(icon: StyleKitIcon, style: UIBarButtonItem.Style = .plain, target: Any?, action: Selector?) {
         self.init(
             image: icon.makeImage(size: .tiny, color: UIColor.from(scheme: .textForeground)),
             style: style,
             target: target,
             action: action
         )
+    }
+
+    static func createCloseItem() -> UIBarButtonItem {
+        let item = UIBarButtonItem(icon: .cross, target: nil, action: nil)
+        item.accessibilityIdentifier = "close"
+        item.accessibilityLabel = "general.close".localized
+        return item
     }
 
 }

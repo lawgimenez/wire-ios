@@ -17,6 +17,10 @@
 //
 
 import Foundation
+import UIKit
+import WireSystem
+import WireDataModel
+import WireSyncEngine
 
 private let zmLog = ZMSLog(tag: "ConversationViewController+ConversationContentViewControllerDelegate")
 
@@ -44,7 +48,7 @@ extension ConversationViewController: ConversationContentViewControllerDelegate 
     }
     
     func conversationContentViewController(_ contentViewController: ConversationContentViewController, didTriggerResending message: ZMConversationMessage) {
-        ZMUserSession.shared()?.enqueueChanges({
+        ZMUserSession.shared()?.enqueue({
             message.resend()
         })
     }

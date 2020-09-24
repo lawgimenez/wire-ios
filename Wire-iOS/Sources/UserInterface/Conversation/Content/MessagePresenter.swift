@@ -19,6 +19,7 @@
 import Foundation
 import AVKit
 import PassKit
+import WireSyncEngine
 
 private let zmLog = ZMSLog(tag: "MessagePresenter")
 
@@ -41,7 +42,6 @@ final class MessagePresenter: NSObject {
     /// init method for injecting MediaPlaybackManager for testing
     ///
     /// - Parameter mediaPlaybackManager: for testing only
-    @objc
     convenience init(mediaPlaybackManager: MediaPlaybackManager? = AppDelegate.shared.mediaPlaybackManager) {
         self.init()
 
@@ -56,9 +56,9 @@ final class MessagePresenter: NSObject {
               !fileURL.path.isEmpty else {
             let errorMessage = "File URL is missing: \(message.fileMessageData?.fileURL.debugDescription ?? "") (\(message.fileMessageData.debugDescription))"
             assert(false, errorMessage)
-            
+
             zmLog.error(errorMessage)
-            ZMUserSession.shared()?.enqueueChanges({
+            ZMUserSession.shared()?.enqueue({
                 message.fileMessageData?.requestFileDownload()
             })
 
@@ -99,7 +99,7 @@ final class MessagePresenter: NSObject {
 // MARK: - AVPlayerViewController dismissial
 
     fileprivate func observePlayerDismissial() {
-        videoPlayerObserver = NotificationCenter.default.addObserver(forName: .dismissingAVPlayer, object: nil, queue: OperationQueue.main) { notification in
+        videoPlayerObserver = NotificationCenter.default.addObserver(forName: .dismissingAVPlayer, object: nil, queue: OperationQueue.main) { _ in
             self.mediaPlayerController?.tearDown()
 
             UIViewController.attemptRotationToDeviceOrientation()
@@ -164,9 +164,11 @@ final class MessagePresenter: NSObject {
 
         if Message.isLocation(message) {
             openLocationMessage(message)
-        } else if Message.isFileTransfer(message) {
+        } else if Message.isVideo(message) {
             openFileMessage(message, targetView: targetView)
-        } else if Message.isImage(message) {
+        } else if Message.isFileTransfer(message), SecurityFlags.openFilePreview.isEnabled {
+            openFileMessage(message, targetView: targetView)
+        } else if Message.isImage(message), SecurityFlags.openFilePreview.isEnabled {
             openImageMessage(message, actionResponder: delegate)
         } else if let openableURL = message.textMessageData?.linkPreview?.openableURL {
             openableURL.open()
@@ -179,9 +181,12 @@ final class MessagePresenter: NSObject {
         }
     }
 
-    func openImageMessage(_ message: ZMConversationMessage, actionResponder delegate: MessageActionResponder) {
+    func openImageMessage(_ message: ZMConversationMessage,
+                          actionResponder delegate: MessageActionResponder) {
         let imageViewController = viewController(forImageMessage: message, actionResponder: delegate)
         if let imageViewController = imageViewController {
+            // to allow image rotation, present the image viewer in full screen style
+            imageViewController.modalPresentationStyle = .fullScreen
             modalTargetController?.present(imageViewController, animated: true)
         }
     }
@@ -192,7 +197,9 @@ final class MessagePresenter: NSObject {
                 return nil
         }
 
-        return imagesViewController(for: message, actionResponder: delegate, isPreviewing: false)
+        return imagesViewController(for: message,
+                                    actionResponder: delegate,
+                                    isPreviewing: false)
     }
 
     func viewController(forImageMessagePreview message: ZMConversationMessage, actionResponder delegate: MessageActionResponder) -> UIViewController? {

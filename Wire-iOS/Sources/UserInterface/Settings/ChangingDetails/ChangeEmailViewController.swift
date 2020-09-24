@@ -17,7 +17,7 @@
 //
 
 import UIKit
-import Cartography
+import WireSyncEngine
 
 enum ChangeEmailFlowType {
     case changeExistingEmail
@@ -37,7 +37,7 @@ struct ChangeEmailState {
     var visibleEmail: String? {
         return newEmail ?? currentEmail
     }
-    
+
     var validatedEmail: String? {
         guard let newEmail = self.newEmail else { return nil }
 
@@ -66,7 +66,7 @@ struct ChangeEmailState {
 
         return ZMEmailCredentials(email: email, password: password)
     }
-    
+
     var isValid: Bool {
         switch flowType {
         case .changeExistingEmail:
@@ -75,7 +75,7 @@ struct ChangeEmailState {
             return isEmailPasswordInputValid
         }
     }
-    
+
     init(currentEmail: String?) {
         self.currentEmail = currentEmail
         flowType = currentEmail != nil ? .changeExistingEmail : .setInitialEmail
@@ -85,7 +85,7 @@ struct ChangeEmailState {
 
 }
 
-@objcMembers final class ChangeEmailViewController: SettingsBaseTableViewController {
+final class ChangeEmailViewController: SettingsBaseTableViewController {
 
     fileprivate weak var userProfile = ZMUserSession.shared()?.userProfile
     var state: ChangeEmailState
@@ -100,22 +100,29 @@ struct ChangeEmailState {
         super.init(style: .grouped)
         setupViews()
     }
-    
+
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+        super.viewWillAppear(animated)
         observerToken = userProfile?.add(observer: self)
     }
-    
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        _ = emailCell.textField.becomeFirstResponder()
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        super.viewWillDisappear(animated)
         observerToken = nil
     }
-    
-    func setupViews() {
+
+    private func setupViews() {
         title = "self.settings.account_section.email.change.title".localized(uppercased: true)
         view.backgroundColor = .clear
         tableView.isScrollEnabled = false
@@ -145,7 +152,7 @@ struct ChangeEmailState {
 
         updateSaveButtonState()
     }
-    
+
     func updateSaveButtonState(enabled: Bool? = nil) {
         if let enabled = enabled {
             navigationItem.rightBarButtonItem?.isEnabled = enabled
@@ -153,7 +160,7 @@ struct ChangeEmailState {
             navigationItem.rightBarButtonItem?.isEnabled = state.isValid
         }
     }
-    
+
     @objc func saveButtonTapped(sender: UIBarButtonItem) {
         if let passwordError = state.passwordValidationError {
             validationCell.updateValidation(.error(passwordError, showVisualFeedback: true))
@@ -179,14 +186,14 @@ struct ChangeEmailState {
         do {
             try updateBlock()
             updateSaveButtonState(enabled: false)
-            navigationController?.showLoadingView = showLoadingView
+            navigationController?.isLoadingViewVisible = showLoadingView
         } catch { }
     }
-    
+
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-    
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch state.flowType {
         case .changeExistingEmail:
@@ -196,7 +203,7 @@ struct ChangeEmailState {
             return 2
         }
     }
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch state.flowType {
         case .changeExistingEmail:
@@ -215,28 +222,28 @@ struct ChangeEmailState {
 }
 
 extension ChangeEmailViewController: UserProfileUpdateObserver {
-    
+
     func emailUpdateDidFail(_ error: Error!) {
-        navigationController?.showLoadingView = false
+        navigationController?.isLoadingViewVisible = false
         updateSaveButtonState()
         showAlert(for: error)
     }
-    
+
     func didSendVerificationEmail() {
-        navigationController?.showLoadingView = false
+        navigationController?.isLoadingViewVisible = false
         updateSaveButtonState()
         if let newEmail = state.newEmail {
             let confirmController = ConfirmEmailViewController(newEmail: newEmail, delegate: self)
             navigationController?.pushViewController(confirmController, animated: true)
         }
-    }    
+    }
 }
 
 extension ChangeEmailViewController: ConfirmEmailDelegate {
     func didConfirmEmail(inController controller: ConfirmEmailViewController) {
         _ = navigationController?.popToPrevious(of: self)
     }
-    
+
     func resendVerification(inController controller: ConfirmEmailViewController) {
         requestEmailUpdate(showLoadingView: false)
     }

@@ -16,10 +16,9 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
+import WireSyncEngine
 
 extension ConversationViewController {
-    @objc
     func createUserDetailViewController() -> UIViewController {
         guard let user = (conversation.firstActiveParticipantOtherThanSelf ?? conversation.connectedUser) else {
             fatal("no firstActiveParticipantOtherThanSelf!")            
@@ -38,13 +37,13 @@ extension ConversationViewController: ProfileViewControllerDelegate {
     
     func profileViewController(_ controller: ProfileViewController?,
                                wantsToCreateConversationWithName name: String?,
-                               users: Set<ZMUser>) {
+                               users: UserSet) {
         guard let userSession = ZMUserSession.shared() else { return }
         
         let conversationCreation = { [weak self] in
             var newConversation: ZMConversation! = nil
             
-            userSession.enqueueChanges({
+            userSession.enqueue({
                 newConversation = ZMConversation.insertGroupConversation(session: userSession,
                                                                          participants: Array(users),
                                                                          name: name,

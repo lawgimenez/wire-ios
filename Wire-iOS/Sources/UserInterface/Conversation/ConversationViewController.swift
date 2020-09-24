@@ -16,12 +16,12 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
-import WireDataModel
+import UIKit
+import WireSyncEngine
+import WireCommonComponents
 
 final class ConversationViewController: UIViewController {
     unowned let zClientViewController: ZClientViewController
-    private let session: ZMUserSessionInterface
     private let visibleMessage: ZMConversationMessage?
 
     var conversation: ZMConversation {
@@ -38,6 +38,7 @@ final class ConversationViewController: UIViewController {
     
     private(set) var startCallController: ConversationCallController!
     
+    let session: ZMUserSessionInterface
     let contentViewController: ConversationContentViewController
     let inputBarController: ConversationInputBarViewController
 
@@ -166,14 +167,12 @@ final class ConversationViewController: UIViewController {
         outgoingConnectionViewController = OutgoingConnectionViewController()
         outgoingConnectionViewController.view.translatesAutoresizingMaskIntoConstraints = false
         outgoingConnectionViewController.buttonCallback = { [weak self] action in
-            self?.session.enqueueChanges({
+            self?.session.enqueue({
                 switch action {
                 case .cancel:
                     self?.conversation.connectedUser?.cancelConnectionRequest()
                 case .archive:
                     self?.conversation.isArchived = true
-                default:
-                    break
                 }
             })
             
@@ -266,20 +265,7 @@ final class ConversationViewController: UIViewController {
     func onBackButtonPressed(_ backButton: UIButton?) {
         openConversationList()
     }
-    
-    @objc
-    func addParticipants(_ participants: Set<ZMUser>) {
-        var newConversation: ZMConversation? = nil
-        
-        session.enqueueChanges({
-            newConversation = self.conversation.addParticipantsOrCreateConversation(participants)
-        }, completionHandler: { [weak self] in
-            if let newConversation = newConversation {
-                self?.zClientViewController.select(conversation: newConversation, focusOnView: true, animated: true)
-            }
-        })
-    }
-    
+
     private func setupContentViewController() {
         contentViewController.delegate = self
         contentViewController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -349,15 +335,8 @@ final class ConversationViewController: UIViewController {
             dismiss(animated: true)
         }
     }
-    
-    // MARK: - UIPopoverPresentationControllerDelegate
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
-        if (controller.presentedViewController is AddParticipantsViewController) {
-            return .overFullScreen
-        }
-        return .fullScreen
-    }
 }
+
 //MARK: - InvisibleInputAccessoryViewDelegate
 
 extension ConversationViewController: InvisibleInputAccessoryViewDelegate {
@@ -433,6 +412,9 @@ extension ConversationViewController: ZMConversationObserver {
 extension ConversationViewController: ZMConversationListObserver {
     public func conversationListDidChange(_ changeInfo: ConversationListChangeInfo) {
         updateLeftNavigationBarItems()
+        if changeInfo.deletedObjects.contains(conversation) {
+            ZClientViewController.shared?.transitionToList(animated: true, completion: nil)
+        }
     }
     
     public func conversationInsideList(_ list: ZMConversationList, didChange changeInfo: ConversationChangeInfo) {
@@ -471,10 +453,10 @@ extension ConversationViewController: ConversationInputBarViewControllerDelegate
                                                             withText newText: String?,
                                                             mentions: [Mention]) {
         contentViewController.didFinishEditing(message)
-        session.enqueueChanges({
+        session.enqueue({
             if let newText = newText,
                 !newText.isEmpty {
-                let fetchLinkPreview = !Settings.shared().disableLinkPreviews
+                let fetchLinkPreview = !Settings.disableLinkPreviews
                 message.textMessageData?.editText(newText, mentions: mentions, fetchLinkPreview: fetchLinkPreview)
             } else {
                 ZMMessage.deleteForEveryone(message)
@@ -497,7 +479,7 @@ extension ConversationViewController: ConversationInputBarViewControllerDelegate
     }
 
     func conversationInputBarViewControllerDidComposeDraft(message: DraftMessage) {
-        ZMUserSession.shared()?.enqueueChanges {
+        ZMUserSession.shared()?.enqueue {
             self.conversation.draftMessage = message
         }
     }

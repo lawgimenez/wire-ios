@@ -22,11 +22,7 @@ import WireSystem
 
 typealias TechnicalReport = [String: String]
 
-final class SettingsTechnicalReportViewController: UITableViewController, MFMailComposeViewControllerDelegate {
-    
-    static private let technicalReportTitle = "TechnicalReportTitleKey"
-    static private let technicalReportData = "TechnicalReportDataKey"
-    
+final class SettingsTechnicalReportViewController: UITableViewController, MFMailComposeViewControllerDelegate {    
     private let includedVoiceLogCell: UITableViewCell
     private let sendReportCell: UITableViewCell
     
@@ -64,7 +60,7 @@ final class SettingsTechnicalReportViewController: UITableViewController, MFMail
     }
     
     func sendReport(sourceView: UIView? = nil) {
-        let mailRecipient = "calling-ios@wire.com"
+        let mailRecipient = WireEmail.shared.callingSupportEmail
 
         guard MFMailComposeViewController.canSendMail() else {
             DebugAlert.displayFallbackActivityController(logPaths: ZMSLog.pathsForExistingLogs, email: mailRecipient, from: self, sourceView: sourceView)

@@ -32,10 +32,13 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
         accentColor = .strongBlue
         ///The cell must higher than 64, otherwise it breaks the constraints.
         sut = ConversationListCell(frame: CGRect(x: 0, y: 0, width: 375, height: ConversationListItemView.minHeight))
+
+        SelfUser.provider = selfUserProvider
     }
     
     override func tearDown() {
         sut = nil
+        SelfUser.provider = nil
         super.tearDown()
     }
     
@@ -76,7 +79,7 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
         
     func testThatItRendersConversationWithNewMessage() {
         // when
-        let message = otherUserConversation.append(text: "Hey there!")
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
         
@@ -87,7 +90,7 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
     func testThatItRendersConversationWithNewMessages() {
         // when
         (0..<8).forEach {_ in 
-            let message = otherUserConversation.append(text: "Hey there!")
+            let message = try! otherUserConversation.appendText(content: "Hey there!")
             (message as! ZMClientMessage).sender = otherUser
         }
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
@@ -98,11 +101,11 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
     
     func testThatItRendersConversation_TextMessagesThenMention() {
         // when
-        let message = otherUserConversation.append(text: "Hey there!")
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
         
         let selfMention = Mention(range: NSRange(location: 0, length: 5), user: self.selfUser)
-        (otherUserConversation.append(text: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
+        (try! otherUserConversation.appendText(content: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadSelfMentionCountKey)
         
@@ -112,16 +115,16 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
 
     func testThatItRendersConversation_TextMessagesThenMentionThenReply() {
         // when
-        let message = otherUserConversation.append(text: "Hey there!")
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
 
-        let selfMessage = otherUserConversation.append(text: "Ping!")
+        let selfMessage = try! otherUserConversation.appendText(content: "Ping!")
         (message as! ZMClientMessage).sender = selfUser
 
         let selfMention = Mention(range: NSRange(location: 0, length: 5), user: self.selfUser)
-        (otherUserConversation.append(text: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
+        (try! otherUserConversation.appendText(content: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
 
-        let replyMessage = otherUserConversation.append(text: "Pong!", replyingTo: selfMessage)
+        let replyMessage = try! otherUserConversation.appendText(content: "Pong!", replyingTo: selfMessage)
         (replyMessage as! ZMMessage).sender = otherUser
 
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
@@ -134,10 +137,10 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
 
     func testThatItRendersConversation_ReplySelfMessage() {
         // when
-        let message = otherUserConversation.append(text: "Hey there!")
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = selfUser
 
-        let replyMessage = otherUserConversation.append(text: "reply test", replyingTo: message)
+        let replyMessage = try! otherUserConversation.appendText(content: "reply test", replyingTo: message)
         (replyMessage as! ZMMessage).sender = otherUser
 
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
@@ -150,8 +153,8 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
     func testThatItRendersConversation_MentionThenTextMessages() {
         // when
         let selfMention = Mention(range: NSRange(location: 0, length: 5), user: self.selfUser)
-        (otherUserConversation.append(text: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
-        let message = otherUserConversation.append(text: "Hey there!")
+        (try! otherUserConversation.appendText(content: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadSelfMentionCountKey)
@@ -163,10 +166,10 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
     func testThatItRendersMutedConversation_TextMessagesThenMention() {
         // when
         otherUserConversation.mutedMessageTypes = [.all]
-        let message = otherUserConversation.append(text: "Hey there!")
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
         let selfMention = Mention(range: NSRange(location: 0, length: 5), user: self.selfUser)
-        (otherUserConversation.append(text: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
+        (try! otherUserConversation.appendText(content: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadSelfMentionCountKey)
         
@@ -178,8 +181,8 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
         // when
         otherUserConversation.mutedMessageTypes = [.all]
         let selfMention = Mention(range: NSRange(location: 0, length: 5), user: self.selfUser)
-        (otherUserConversation.append(text: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
-        let message = otherUserConversation.append(text: "Hey there!")
+        (try! otherUserConversation.appendText(content: "@self test", mentions: [selfMention]) as! ZMMessage).sender = self.otherUser
+        let message = try! otherUserConversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadSelfMentionCountKey)
@@ -190,7 +193,7 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
     
     func testThatItRendersConversationWithKnock() {
         // when
-        let knock = otherUserConversation.appendKnock()
+        let knock = try! otherUserConversation.appendKnock()
         (knock as! ZMClientMessage).sender = otherUser
         otherUserConversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)
         
@@ -261,7 +264,7 @@ final class ConversationListCellTests: CoreDataSnapshotTestCase {
     func testThatItRendersGroupConversationWithTextMessages() {
         // when
         let conversation = createGroupConversation()
-        let message = conversation.append(text: "Hey there!")
+        let message = try! conversation.appendText(content: "Hey there!")
         (message as! ZMClientMessage).sender = otherUser
         
         conversation.setPrimitiveValue(1, forKey: ZMConversationInternalEstimatedUnreadCountKey)

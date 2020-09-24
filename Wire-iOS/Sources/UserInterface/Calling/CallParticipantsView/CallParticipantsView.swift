@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import WireDataModel
+import WireSyncEngine
 
 typealias CallParticipantsList = [CallParticipantsCellConfiguration]
 
@@ -25,7 +27,7 @@ protocol CallParticipantsCellConfigurationConfigurable: Reusable {
 }
 
 enum CallParticipantsCellConfiguration: Hashable {
-    case callParticipant(user: ZMUser, sendsVideo: Bool)
+    case callParticipant(user: ZMUser, videoState: VideoState?, microphoneState: MicrophoneState?)
     case showAll(totalCount: Int)
     
     var cellType: CallParticipantsCellConfigurationConfigurable.Type {
@@ -63,12 +65,6 @@ class CallParticipantsView: UICollectionView, Themeable {
         didSet {
             guard oldValue != colorSchemeVariant else { return }
             applyColorScheme(colorSchemeVariant)
-        }
-    }
-    
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        return subviews.any {
-            !$0.isHidden && $0.point(inside: convert(point, to: $0), with: event) && $0 is ShowAllParticipantsCell
         }
     }
     
@@ -115,13 +111,14 @@ extension CallParticipantsView: UICollectionViewDataSource {
 extension UserCell: CallParticipantsCellConfigurationConfigurable {
     
     func configure(with configuration: CallParticipantsCellConfiguration, variant: ColorSchemeVariant) {
-        guard case let .callParticipant(user, sendsVideo) = configuration else { preconditionFailure() }
+        guard case let .callParticipant(user, videoState, microphoneState) = configuration else { preconditionFailure() }
         colorSchemeVariant = variant
         contentBackgroundColor = .clear
         hidesSubtitle = true
         configure(with: user)
         accessoryIconView.isHidden = true
-        videoIconView.isHidden = !sendsVideo
+        microphoneIconView.set(style: MicrophoneIconStyle(state: microphoneState))
+        videoIconView.set(style: VideoIconStyle(state: videoState))
     }
     
 }

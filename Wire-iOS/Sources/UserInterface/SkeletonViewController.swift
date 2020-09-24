@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 import UIKit
 import Cartography
 import WireUtilities
+import WireCommonComponents
+import WireDataModel
 
 final class ListSkeletonCellNameItemView: UIView {
     
@@ -301,7 +303,7 @@ final class SkeletonViewController: UIViewController {
         listViewController.view = listView
         customSplitViewController.leftViewController = listViewController
         customSplitViewController.view.layoutIfNeeded()
-        customSplitViewController .setLeftViewControllerRevealed(true, animated: false, completion: nil)
+        customSplitViewController.setLeftViewControllerRevealed(true, animated: false)
     }
     
     func createConstraints() {
@@ -317,9 +319,9 @@ final class SkeletonViewController: UIViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         if customSplitViewController.layoutSize == .compact {
-            return UIStatusBarStyle.lightContent
+            return .lightContent
         } else {
-            return UIStatusBarStyle.default
+            return .compatibleDarkContent
         }
     }
     

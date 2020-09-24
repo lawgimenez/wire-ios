@@ -17,6 +17,9 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
 extension ConversationContentViewController {
     // MARK: - EditMessages
@@ -51,15 +54,15 @@ extension ConversationContentViewController {
     }
 
     func messageAction(actionId: MessageAction,
-                               for message: ZMConversationMessage,
-                               view: UIView) {
+                       for message: ZMConversationMessage,
+                       view: UIView) {
         switch actionId {
         case .cancel:
-            session.enqueueChanges({
+            session.enqueue({
                 message.fileMessageData?.cancelTransfer()
             })
         case .resend:
-            session.enqueueChanges({
+            session.enqueue({
                 message.resend()
             })
         case .delete:
@@ -92,6 +95,11 @@ extension ConversationContentViewController {
                     present(saveController, animated: true)
                 }
             }
+        case .digitallySign:
+            dataSource.selectedMessage = message
+            message.isFileDownloaded()
+                ? signPDFDocument(for: message, observer: self)
+                : presentDownloadNecessaryAlert(for: message)
         case .edit:
             dataSource.editingMessage = message
             delegate?.conversationContentViewController(self, didTriggerEditing: message)
@@ -99,17 +107,14 @@ extension ConversationContentViewController {
             openSketch(for: message, in: .draw)
         case .sketchEmoji:
             openSketch(for: message, in: .emoji)
-        case .sketchText:
-            // Not implemented yet
-            break
-        case .like:
+        case .like, .unlike:
             // The new liked state, the value is flipped
             let updatedLikedState = !Message.isLikedMessage(message)
             guard let indexPath = dataSource.topIndexPath(for: message) else { return }
 
             let selectedMessage = dataSource.selectedMessage
 
-            session.performChanges({
+            session.perform({
                 Message.setLikedMessage(message, liked: updatedLikedState)
             })
 
@@ -122,28 +127,26 @@ extension ConversationContentViewController {
                 // Select if necessary to prevent message from collapsing
                 if !(selectedMessage == message) && !Message.hasReactions(message) {
                     willSelectRow(at: indexPath, tableView: tableView)
-
                     tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
                 }
             }
         case .forward:
             showForwardFor(message: message, from: view)
         case .showInConversation:
-            scroll(to: message) { cell in
+            scroll(to: message) { _ in
                 self.dataSource.highlight(message: message)
             }
         case .copy:
             message.copy(in: .general)
         case .download:
-            session.enqueueChanges({
+            session.enqueue({
                 message.fileMessageData?.requestFileDownload()
             })
         case .reply:
             delegate?.conversationContentViewController(self, didTriggerReplyingTo: message)
-
         case .openQuote:
             if let quote = message.textMessageData?.quote {
-                scroll(to: quote) { cell in
+                scroll(to: quote) { _ in
                     self.dataSource.highlight(message: quote)
                 }
             }
@@ -151,5 +154,116 @@ extension ConversationContentViewController {
             let detailsViewController = MessageDetailsViewController(message: message)
             parent?.present(detailsViewController, animated: true)
         }
+    }
+    
+    private func signPDFDocument(for message: ZMConversationMessage,
+                                 observer: SignatureObserver) {
+        guard let token = message.fileMessageData?.signPDFDocument(observer: observer) else {
+            didFailSignature(errorType: .noConsentURL)
+            return
+        }
+        digitalSignatureToken = token
+    }
+    
+    private func presentDownloadNecessaryAlert(for message: ZMConversationMessage) {
+        let alertMessage = "digital_signature.alert.download_necessary".localized
+        let alertController = UIAlertController(title: "",
+                                                message: alertMessage,
+                                                preferredStyle: .alert)
+        let cancelAction = UIAlertAction(title: "general.close".localized,
+                                         style: .default)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true)
+    }
+}
+
+// MARK: - SignatureObserver
+extension ConversationContentViewController: SignatureObserver {
+    func willReceiveSignatureURL() {
+        isLoadingViewVisible = true
+    }
+    
+    func didReceiveSignatureURL(_ url: URL) {
+        isLoadingViewVisible = false
+        presentDigitalSignatureVerification(with: url)
+    }
+    
+    func didReceiveDigitalSignature(_ cmsFileMetadata: ZMFileMetadata) {
+        dismissDigitalSignatureVerification(completion: { [weak self] in
+            ZMUserSession.shared()?.perform({
+                do {
+                    try self?.conversation.appendFile(with: cmsFileMetadata)
+                } catch {
+                    Logging.messageProcessing.warn("Failed to append file. Reason: \(error.localizedDescription)")
+                }
+            })
+        })
+    }
+    
+    func didFailSignature(errorType: SignatureStatus.ErrorYpe) {
+        isLoadingViewVisible = false
+        isDigitalSignatureVerificationShown
+            ? dismissDigitalSignatureVerification(completion: { [weak self] in                  self?.presentDigitalSignatureErrorAlert(errorType: errorType)
+            })
+            : presentDigitalSignatureErrorAlert(errorType: errorType)
+    }
+    
+    // MARK: - Helpers
+    private func presentDigitalSignatureVerification(with url: URL) {
+        let digitalSignatureVerification = DigitalSignatureVerificationViewController(url: url) { [weak self] result in
+            switch result {
+            case .success:
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
+                    self?.retriveSignature()
+                }
+            case let .failure(error):
+                self?.dismissDigitalSignatureVerification(completion: {
+                    if case DigitalSignatureVerificationError.otherError = error {
+                        self?.retriveSignature()
+                        return
+                    }
+                    
+                    self?.presentDigitalSignatureErrorAlert(errorType: .retrieveFailed)
+                })
+            }
+        }
+        let navigationController = UINavigationController(rootViewController: digitalSignatureVerification)
+        present(navigationController, animated: true, completion: { [weak self] in
+            self?.isDigitalSignatureVerificationShown =  true
+        })
+    }
+    
+    private func retriveSignature() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
+            self?.dataSource.selectedMessage?
+                .fileMessageData?.retrievePDFSignature()
+        }
+    }
+    
+    private func presentDigitalSignatureErrorAlert(errorType: SignatureStatus.ErrorYpe) {
+        var message: String?
+        switch errorType {
+        case .noConsentURL:
+            message = "digital_signature.alert.error.no_consent_url".localized
+        case .retrieveFailed:
+            message = "digital_signature.alert.error.no_signature".localized
+        }
+        
+        let alertController = UIAlertController(title: "",
+                                                message: message,
+                                                preferredStyle: .alert)
+        
+        let closeAction = UIAlertAction(title: "general.close".localized,
+                                        style: .default)
+        
+        alertController.addAction(closeAction)
+        present(alertController, animated: true)
+    }
+    
+    private func dismissDigitalSignatureVerification(completion: (() -> Void)? = nil) {
+        dismiss(animated: true, completion: { [weak self] in
+            self?.isDigitalSignatureVerificationShown =  false
+            completion?()
+        })
     }
 }

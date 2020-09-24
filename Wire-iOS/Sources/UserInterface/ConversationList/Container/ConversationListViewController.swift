@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 enum ConversationListState {
     case conversationList
@@ -157,7 +159,7 @@ final class ConversationListViewController: UIViewController {
         super.viewDidAppear(animated)
 
         if !isIPadRegular() {
-            Settings.shared().lastViewedScreen = SettingsLastScreen.list
+            Settings.shared[.lastViewedScreen] = SettingsLastScreen.list
         }
 
         state = .conversationList

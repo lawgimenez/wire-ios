@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2019 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@ import AppCenter
 import AppCenterAnalytics
 import AppCenterCrashes
 import AppCenterDistribute
+import WireSystem
+import UIKit
 
 extension AppDelegate {
 
@@ -56,7 +58,7 @@ extension AppDelegate {
 
         if appCenterTrackingEnabled &&
             MSCrashes.hasCrashedInLastSession() &&
-            MSCrashes.timeIntervalCrashInLastSessionOccurred < 5 {
+            MSCrashes.timeIntervalCrashInLastSessionOccurred ?? 0 < TimeInterval(5) {
             zmLog.error("AppCenterIntegration: START Waiting for the crash log upload...")
             self.appCenterInitCompletion = completion
             self.perform(#selector(crashReportUploadDone), with: nil, afterDelay: 5)
@@ -80,7 +82,8 @@ extension AppDelegate {
 }
 
 extension AppDelegate: MSDistributeDelegate {
-    func distribute(_ distribute: MSDistribute!, releaseAvailableWith details: MSReleaseDetails!) -> Bool {
+    func distribute(_ distribute: MSDistribute!,
+                    releaseAvailableWith details: MSReleaseDetails!) -> Bool {
         guard let window = window else { return false }
 
         let alertController = UIAlertController(title: "Update available \(details?.shortVersion ?? "") (\(details?.version ?? ""))",
@@ -120,5 +123,4 @@ extension AppDelegate: MSCrashesDelegate {
     public func crashes(_ crashes: MSCrashes!, didSucceedSending errorReport: MSErrorReport!) {
         crashReportUploadDone()
     }
-
 }

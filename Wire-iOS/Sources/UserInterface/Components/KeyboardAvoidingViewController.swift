@@ -17,8 +17,9 @@
 //
 
 import Foundation
+import UIKit
 
-final class KeyboardAvoidingViewController: UIViewController {
+class KeyboardAvoidingViewController: UIViewController {
     
     let viewController: UIViewController
     var disabledWhenInsidePopover: Bool = false
@@ -38,6 +39,7 @@ final class KeyboardAvoidingViewController: UIViewController {
                                                object: nil)
     }
     
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

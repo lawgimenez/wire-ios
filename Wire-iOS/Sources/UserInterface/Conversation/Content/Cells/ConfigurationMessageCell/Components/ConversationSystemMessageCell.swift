@@ -17,6 +17,9 @@
 //
 
 import UIKit
+import WireCommonComponents
+import WireDataModel
+import WireSyncEngine
 
 // MARK: - Cells
 
@@ -349,10 +352,10 @@ final class ConversationSystemMessageCellDescription {
             let startedConversationCell = ConversationStartedSystemMessageCellDescription(message: message, data: systemMessageData)
             cells.append(AnyConversationMessageCellDescription(startedConversationCell))
             
-            let isOpenGroup = conversation.conversationType == .group && conversation.allowGuests
-            let selfCanAddUsers = ZMUser.selfUser()?.canAddUser(to: conversation) ?? false
-            
-            if selfCanAddUsers && isOpenGroup {
+            /// only display invite user cell for team members
+            if SelfUser.current.isTeamMember,
+               conversation.selfCanAddUsers,
+               conversation.isOpenGroup {
                 cells.append(AnyConversationMessageCellDescription(GuestsAllowedCellDescription()))
             }
             
@@ -365,7 +368,16 @@ final class ConversationSystemMessageCellDescription {
 
         return []
     }
+}
 
+private extension ZMConversation {
+    var isOpenGroup: Bool {
+        return conversationType == .group && allowGuests
+    }
+
+    var selfCanAddUsers: Bool {
+        return SelfUser.current.canAddUser(to: self)
+    }
 }
 
 // MARK: - Descriptions
@@ -395,14 +407,6 @@ class ConversationParticipantsChangedSystemMessageCellDescription: ConversationM
         let model = ParticipantsCellViewModel(font: .mediumFont, boldFont: .mediumSemiboldFont, largeFont: .largeSemiboldFont, textColor: color, iconColor: color, message: message)
         configuration = View.Configuration(icon: model.image(), attributedText: model.attributedTitle(), showLine: true, warning: model.warning())
         actionController = nil
-    }
-
-    func isConfigurationEqual(with description: Any) -> Bool {
-        guard let otherSystemMessageDescription = description as? ConversationParticipantsChangedSystemMessageCellDescription else {
-            return false
-        }
-
-        return self.configuration == otherSystemMessageDescription.configuration
     }
 }
 
@@ -867,7 +871,7 @@ class ConversationNewDeviceSystemMessageCellDescription: ConversationMessageCell
     }
     
     private static func configureForNewClientOfSelfUser(_ selfUser: UserType, clients: [UserClientType], attributes: TextAttributes) -> View.Configuration {
-        let isSelfClient = clients.first?.isEqual(ZMUserSession.shared()?.selfUserClient()) ?? false
+        let isSelfClient = clients.first?.isEqual(ZMUserSession.shared()?.selfUserClient) ?? false
         let senderName = NSLocalizedString("content.system.you_started", comment: "") && attributes.senderAttributes
         let startedUsingString = NSLocalizedString("content.system.started_using", comment: "") && attributes.startedUsingAttributes
         let userClientString = NSLocalizedString("content.system.new_device", comment: "") && attributes.linkAttributes

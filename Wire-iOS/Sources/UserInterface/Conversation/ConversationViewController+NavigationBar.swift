@@ -18,6 +18,7 @@
 
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 // MARK: - Update left navigator bar item when size class changes
 extension ConversationViewController {
@@ -25,7 +26,7 @@ extension ConversationViewController {
     func addCallStateObserver() -> Any? {
         return conversation.voiceChannel?.addCallStateObserver(self)
     }
-    
+
     var audioCallButton: UIBarButtonItem {
         let button = UIBarButtonItem(icon: .phone, target: self, action: #selector(ConversationViewController.voiceCallItemTapped(_:)))
         button.accessibilityIdentifier = "audioCallBarButton"
@@ -60,7 +61,10 @@ extension ConversationViewController {
 
     var backButton: UIBarButtonItem {
         let hasUnreadInOtherConversations = self.conversation.hasUnreadMessagesInOtherConversations
-        let arrowIcon: StyleKitIcon = hasUnreadInOtherConversations ? .backArrowWithDot : .backArrow
+        let arrowIcon: StyleKitIcon = view.isRightToLeft
+            ? (hasUnreadInOtherConversations ? .forwardArrowWithDot : .forwardArrow)
+            : (hasUnreadInOtherConversations ? .backArrowWithDot : .backArrow)
+
         let icon: StyleKitIcon = (self.parent?.wr_splitViewController?.layoutSize == .compact) ? arrowIcon : .hamburger
         let action = #selector(ConversationViewController.onBackButtonPressed(_:))
         let button = UIBarButtonItem(icon: icon, target: self, action: action)
@@ -71,7 +75,7 @@ extension ConversationViewController {
             button.tintColor = UIColor.accent()
             button.accessibilityValue = "conversation_list.voiceover.unread_messages.hint".localized
         }
-        
+
         return button
     }
 
@@ -81,11 +85,12 @@ extension ConversationViewController {
         let button = UIBarButtonItem(icon: showingSearchResults ? .activeSearch : .search, target: self, action: action)
         button.accessibilityIdentifier = "collection"
         button.accessibilityLabel = "conversation.action.search".localized
-        
+        button.isEnabled = !session.encryptMessagesAtRest
+
         if showingSearchResults {
             button.tintColor = UIColor.accent()
         }
-        
+
         return button
     }
 
@@ -155,23 +160,22 @@ extension ConversationViewController {
         startCallController.joinCall()
     }
 
-    @objc func onCollectionButtonPressed(_ sender: AnyObject!) {
+    @objc
+    private func onCollectionButtonPressed(_ sender: AnyObject!) {
         if self.collectionController == .none {
             let collections = CollectionsViewController(conversation: conversation)
             collections.delegate = self
 
             collections.onDismiss = { [weak self] _ in
-
-                guard let `self` = self, let collectionController = self.collectionController else {
+                guard let weakSelf = self else {
                     return
                 }
 
-                collectionController.dismiss(animated: true, completion: {
-                    })
+                weakSelf.collectionController?.dismiss(animated: true)
             }
-            self.collectionController = collections
+            collectionController = collections
         } else {
-            self.collectionController?.refetchCollection()
+            collectionController?.refetchCollection()
         }
 
         collectionController?.shouldTrackOnNextOpen = true
@@ -229,12 +233,14 @@ extension ConversationViewController: WireCallCenterCallStateObserver {
 extension ZMConversation {
 
     /// Whether there is an incoming or inactive incoming call that can be joined.
-    @objc var canJoinCall: Bool {
+    var canJoinCall: Bool {
         return voiceChannel?.state.canJoinCall ?? false
     }
 
     var canStartVideoCall: Bool {
         guard !isCallOngoing else { return false }
+
+        guard !(type(of: self).useConferenceCalling) else { return true }
 
         if self.conversationType == .oneOnOne {
             return true
@@ -259,14 +265,14 @@ extension ZMConversation {
 }
 
 extension CallState {
-    
+
     var canJoinCall: Bool {
         switch self {
         case .incoming: return true
         default: return false
         }
     }
-    
+
     var isCallOngoing: Bool {
         switch self {
         case .none, .incoming: return false

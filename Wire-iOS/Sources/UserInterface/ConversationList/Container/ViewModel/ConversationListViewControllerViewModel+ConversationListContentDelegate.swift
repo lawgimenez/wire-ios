@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireDataModel
 
 extension ConversationListViewController.ViewModel: ConversationListContentDelegate {
     func conversationList(_ controller: ConversationListContentController?, didSelect conversation: ZMConversation?, focusOnView focus: Bool) {
@@ -43,7 +44,7 @@ extension ConversationListViewController.ViewModel {
     func showActionMenu(for conversation: ZMConversation!, from view: UIView!) {
         guard let viewController = viewController as? UIViewController else { return }
 
-        actionsController = ConversationActionController(conversation: conversation, target: viewController)
+        actionsController = ConversationActionController(conversation: conversation, target: viewController, sourceView: view)
         actionsController?.presentMenu(from: view, context: .list)
     }
 }

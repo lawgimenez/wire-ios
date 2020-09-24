@@ -18,10 +18,15 @@
 
 
 import Foundation
+import UIKit
+import WireSystem
+import WireSyncEngine
+import avs
+import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "UI")
 
-@objcMembers final public class AudioRecordKeyboardViewController: UIViewController, AudioRecordBaseViewController {
+final class AudioRecordKeyboardViewController: UIViewController, AudioRecordBaseViewController {
     
     enum State {
         case ready, recording, effects
@@ -68,12 +73,11 @@ private let zmLog = ZMSLog(tag: "UI")
     
     // MARK: - Life Cycle
     
-    @objc convenience init() {
+    convenience init() {
         self.init(audioRecorder: AudioRecorder(
             format: .wav,
-            maxRecordingDuration: ZMUserSession.shared()?.maxAudioLength() ,
-            maxFileSize: ZMUserSession.shared()?.maxUploadFileSize()
-        ))
+            maxRecordingDuration: ZMUserSession.shared()?.maxAudioLength ,
+            maxFileSize: ZMUserSession.shared()?.maxUploadFileSize))
     }
     
     init(audioRecorder: AudioRecorderType) {
@@ -83,8 +87,8 @@ private let zmLog = ZMSLog(tag: "UI")
         configureAudioRecorder()
         createConstraints()
         
-        if Bundle.developerModeEnabled && Settings.shared().maxRecordingDurationDebug != 0 {
-            self.recorder.maxRecordingDuration = Settings.shared().maxRecordingDurationDebug
+        if Bundle.developerModeEnabled && Settings.shared.maxRecordingDurationDebug != 0 {
+            self.recorder.maxRecordingDuration = Settings.shared.maxRecordingDurationDebug
         }
     }
     
@@ -216,7 +220,7 @@ private let zmLog = ZMSLog(tag: "UI")
          self.bottomToolbar,
          self.topContainer,
          self.topSeparator
-        ].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
+        ].prepareForLayout()
         
         NSLayoutConstraint.activate([
             topContainer.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 16),
@@ -448,6 +452,7 @@ private let zmLog = ZMSLog(tag: "UI")
     }
     
     @objc func redoButtonPressed(_ button: UIButton?) {
+        recorder.deleteRecording()
         self.state = .ready
     }
     

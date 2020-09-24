@@ -17,6 +17,9 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
 extension SelfProfileViewController {
     
@@ -50,7 +53,7 @@ extension SelfProfileViewController {
         
         present(newLoginAlertController, animated: true, completion: .none)
         
-        ZMUserSession.shared()?.enqueueChanges {
+        ZMUserSession.shared()?.enqueue {
             clients.forEach {
                 $0.needsToNotifyUser = false
             }

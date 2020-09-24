@@ -25,13 +25,13 @@ import UIKit
  * You need to override `+ (Class *)layerClass` on `UIView` before conforming to this protocol.
  */
 
-protocol RoundedViewProtocol: NSObjectProtocol {
+protocol RoundedViewProtocol: class {
     var layer: CALayer { get }
 }
 
 extension RoundedViewProtocol {
 
-    public var shape: MaskShape {
+    var shape: MaskShape {
         get {
             return roundedLayer.shape
         }
@@ -40,7 +40,7 @@ extension RoundedViewProtocol {
         }
     }
 
-    public var roundedCorners: UIRectCorner {
+    var roundedCorners: UIRectCorner {
         get {
             return roundedLayer.roundedCorners
         }
@@ -49,7 +49,7 @@ extension RoundedViewProtocol {
         }
     }
 
-    public var roundedLayer: ContinuousMaskLayer {
+    var roundedLayer: ContinuousMaskLayer {
         return layer as! ContinuousMaskLayer
     }
 

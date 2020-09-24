@@ -17,17 +17,19 @@
 //
 
 import Foundation
+import UIKit
 
 extension UINavigationController {
-    
-    @objc func closeItem() -> UIBarButtonItem {
-        let item = UIBarButtonItem(icon: .cross, target: self, action: #selector(closeTapped))
-        item.accessibilityIdentifier = "close"
-        item.accessibilityLabel = "general.close".localized
+
+    func closeItem() -> UIBarButtonItem {
+        let item = UIBarButtonItem.createCloseItem()
+        item.target = self
+        item.action = #selector(closeTapped)
         return item
     }
-    
-    @objc private func closeTapped() {
+
+    @objc
+    private func closeTapped() {
         dismiss(animated: true)
     }
 }

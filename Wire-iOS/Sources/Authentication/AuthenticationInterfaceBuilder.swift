@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 //
 
 import UIKit
+import WireDataModel
 
 /**
  * A type of view controller that can be managed by an authentication coordinator.
@@ -97,6 +98,10 @@ class AuthenticationInterfaceBuilder {
         case .createCredentials(_, let credentialsFlowType):
             return makeCredentialsViewController(for: .registration(credentialsFlowType))
 
+        case .passcodeSetup:
+            return PasscodeSetupViewController.createKeyboardAvoidingFullScreenView(callback: nil,
+                                                                                    variant: .light)
+            
         case .clientManagement:
             let manageClientsInvitation = ClientUnregisterInvitationStepDescription()
             let viewController = makeViewController(for: manageClientsInvitation)
@@ -145,6 +150,10 @@ class AuthenticationInterfaceBuilder {
         case .teamCreation(let state):
             return makeTeamCreationStepViewController(for: state)
 
+        case .switchBackend(let url):
+            let viewController = PreBackendSwitchViewController()
+            viewController.backendURL = url
+            return viewController
         default:
             return nil
         }

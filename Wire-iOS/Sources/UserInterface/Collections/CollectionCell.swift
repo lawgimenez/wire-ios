@@ -18,6 +18,10 @@
 
 import Foundation
 import Cartography
+import UIKit
+import WireDataModel
+import WireSyncEngine
+import WireCommonComponents
 
 protocol CollectionCellDelegate: class {
     func collectionCell(_ cell: CollectionCell, performAction: MessageAction)
@@ -190,9 +194,7 @@ class CollectionCell: UICollectionViewCell {
 //           We now force the window to be the key window and to be the first responder to ensure that we can
 //           show the menu controller.
 
-        self.window?.makeKey()
-        self.window?.becomeFirstResponder()
-        self.becomeFirstResponder()
+        prepareShowingMenu()
         
         let menuController = UIMenuController.shared
         menuController.menuItems = ConversationMessageActionController.allMessageActions

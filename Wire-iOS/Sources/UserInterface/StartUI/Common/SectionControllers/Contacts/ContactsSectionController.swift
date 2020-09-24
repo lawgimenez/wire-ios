@@ -17,18 +17,18 @@
 //
 
 import Foundation
-
+import WireDataModel
 
 class ContactsSectionController : SearchSectionController {
     
-    var contacts: [ZMUser] = []
+    var contacts: [UserType] = []
     var selection: UserSelection? = nil {
         didSet {
             selection?.add(observer: self)
         }
     }
     var allowsSelection: Bool = false
-    weak var delegate: SearchSectionControllerDelegate? = nil
+    weak var delegate: SearchSectionControllerDelegate?
     weak var collectionView: UICollectionView? = nil
     
     deinit {

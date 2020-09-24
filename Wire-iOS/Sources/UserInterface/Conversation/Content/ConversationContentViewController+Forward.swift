@@ -20,6 +20,7 @@ import Foundation
 import WireSyncEngine
 import Cartography
 import WireCommonComponents
+import UIKit
 
 extension ZMConversation: ShareDestination {
 
@@ -39,7 +40,7 @@ extension ZMConversation: ShareDestination {
 
 extension Array where Element == ZMConversation {
 
-    // Should be called inside ZMUserSession.shared().performChanges block
+    // Should be called inside ZMUserSession.shared().perform block
     func forEachNonEphemeral(_ block: (ZMConversation) -> Void) {
         forEach {
             let timeout = $0.messageDestructionTimeout
@@ -55,28 +56,50 @@ func forward(_ message: ZMMessage, to: [AnyObject]) {
     let conversations = to as! [ZMConversation]
 
     if message.isText {
-        let fetchLinkPreview = !Settings.shared().disableLinkPreviews
-        ZMUserSession.shared()?.performChanges {
+        let fetchLinkPreview = !Settings.disableLinkPreviews
+        ZMUserSession.shared()?.perform {
             conversations.forEachNonEphemeral {
-                // We should not forward any mentions to other conversations
-                _ = $0.append(text: message.textMessageData!.messageText!, mentions: [], fetchLinkPreview: fetchLinkPreview)
+                do {
+                    // We should not forward any mentions to other conversations
+                    try $0.appendText(content: message.textMessageData!.messageText!, mentions: [], fetchLinkPreview: fetchLinkPreview)
+                } catch {
+                    Logging.messageProcessing.warn("Failed to append text message. Reason: \(error.localizedDescription)")
+                }
             }
         }
     } else if message.isImage, let imageData = message.imageMessageData?.imageData {
-        ZMUserSession.shared()?.performChanges {
-            conversations.forEachNonEphemeral { _ = $0.append(imageFromData: imageData) }
+        ZMUserSession.shared()?.perform {
+            conversations.forEachNonEphemeral {
+                do {
+                    try $0.appendImage(from: imageData)
+                } catch {
+                    Logging.messageProcessing.warn("Failed to append image message. Reason: \(error.localizedDescription)")
+                }
+            }
         }
     } else if message.isVideo || message.isAudio || message.isFile {
         let url  = message.fileMessageData!.fileURL!
         FileMetaDataGenerator.metadataForFileAtURL(url, UTI: url.UTI(), name: url.lastPathComponent) { fileMetadata in
-            ZMUserSession.shared()?.performChanges {
-                conversations.forEachNonEphemeral { _ = $0.append(file: fileMetadata) }
+            ZMUserSession.shared()?.perform {
+                conversations.forEachNonEphemeral {
+                    do {
+                        try $0.appendFile(with: fileMetadata)
+                    } catch {
+                        Logging.messageProcessing.warn("Failed to append file message. Reason: \(error.localizedDescription)")
+                    }
+                }
             }
         }
     } else if message.isLocation {
         let locationData = LocationData.locationData(withLatitude: message.locationMessageData!.latitude, longitude: message.locationMessageData!.longitude, name: message.locationMessageData!.name, zoomLevel: message.locationMessageData!.zoomLevel)
-        ZMUserSession.shared()?.performChanges {
-            conversations.forEachNonEphemeral { _ = $0.append(location: locationData) }
+        ZMUserSession.shared()?.perform {
+            conversations.forEachNonEphemeral {
+                do {
+                    try $0.appendLocation(with: locationData)
+                } catch {
+                    Logging.messageProcessing.warn("Failed to append location message. Reason: \(error.localizedDescription)")
+                }
+            }
         }
     } else {
         fatal("Cannot forward message")
@@ -125,6 +148,8 @@ extension ConversationContentViewController {
            let shareViewController = keyboardAvoidingViewController.viewController as? ShareViewController<ZMConversation, ZMMessage> {
             shareViewController.showPreview = traitCollection.horizontalSizeClass != .regular
         }
+
+        updatePopoverSourceRect()
     }
 
     func updatePopover() {
@@ -152,11 +177,12 @@ extension ConversationContentViewController: UIAdaptivePresentationControllerDel
         let keyboardAvoiding = KeyboardAvoidingViewController(viewController: shareViewController)
         keyboardAvoiding.disabledWhenInsidePopover = true
         keyboardAvoiding.preferredContentSize = CGSize.IPadPopover.preferredContentSize
-        keyboardAvoiding.modalPresentationStyle = .popover
+        keyboardAvoiding.modalPresentationCapturesStatusBarAppearance = true
 
-        let presenter: PopoverPresenterViewController? = (self.presentedViewController ?? UIApplication.shared.keyWindow?.rootViewController) as? PopoverPresenterViewController
+        let presenter: PopoverPresenterViewController? = (presentedViewController ?? UIApplication.shared.keyWindow?.rootViewController) as? PopoverPresenterViewController
 
-        if let pointToView = (view as? SelectableView)?.selectionView ?? view ?? self.view {
+        if let presenter = presenter,
+           let pointToView = (view as? SelectableView)?.selectionView ?? view ?? self.view {
             keyboardAvoiding.configPopover(pointToView: pointToView, popoverPresenter: presenter)
         }
 
@@ -169,9 +195,7 @@ extension ConversationContentViewController: UIAdaptivePresentationControllerDel
         shareViewController.onDismiss = { (shareController: ShareViewController<ZMConversation, ZMMessage>, _) -> Void in
             weak var presentingViewController = shareController.presentingViewController
 
-            presentingViewController?.dismiss(animated: true) {
-                presentingViewController?.setNeedsStatusBarAppearanceUpdate()
-            }
+            presentingViewController?.dismiss(animated: true)
         }
 
         (presenter ?? self).present(keyboardAvoiding, animated: true)

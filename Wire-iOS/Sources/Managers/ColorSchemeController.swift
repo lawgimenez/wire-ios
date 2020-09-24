@@ -17,13 +17,14 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 extension Notification.Name {
     static let colorSchemeControllerDidApplyColorSchemeChange = Notification.Name("ColorSchemeControllerDidApplyColorSchemeChange")
 }
 
-@objc extension NSNotification {
-    public static let colorSchemeControllerDidApplyColorSchemeChange = Notification.Name.colorSchemeControllerDidApplyColorSchemeChange
+extension NSNotification {
+    static let colorSchemeControllerDidApplyColorSchemeChange = Notification.Name.colorSchemeControllerDidApplyColorSchemeChange
 }
 
 class ColorSchemeController: NSObject {
@@ -34,10 +35,10 @@ class ColorSchemeController: NSObject {
         super.init()
 
         if let session = ZMUserSession.shared() {
-            userObserverToken = UserChangeInfo.add(observer:self, for: ZMUser.selfUser(), in: session)
+            userObserverToken = UserChangeInfo.add(observer:self, for: SelfUser.current, in: session)
         }
 
-        NotificationCenter.default.addObserver(self, selector: #selector(settingsColorSchemeDidChange(notification:)), name: .SettingsColorSchemeChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(settingsColorSchemeDidChange), name: .SettingsColorSchemeChanged, object: nil)
 
     }
 
@@ -46,8 +47,8 @@ class ColorSchemeController: NSObject {
     }
 
     @objc
-    func settingsColorSchemeDidChange(notification: Notification?) {
-        ColorScheme.default.variant = Settings.shared.colorScheme.colorSchemeVariant
+    private func settingsColorSchemeDidChange() {
+        ColorScheme.default.variant = Settings.shared.colorSchemeVariant
 
         NSAttributedString.invalidateMarkdownStyle()
 

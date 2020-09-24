@@ -1,4 +1,3 @@
-
 // Wire
 // Copyright (C) 2019 Wire Swiss GmbH
 //
@@ -19,14 +18,18 @@
 import Foundation
 import DifferenceKit
 import UIKit
+import WireDataModel
 
 private let CellReuseIdConnectionRequests = "CellIdConnectionRequests"
 private let CellReuseIdConversation = "CellId"
 
-final class ConversationListContentController: UICollectionViewController {
+final class ConversationListContentController: UICollectionViewController, PopoverPresenter {
+    // PopoverPresenter
+    weak var presentedPopover: UIPopoverPresentationController?
+    weak var popoverPointToView: UIView?
+
     weak var contentDelegate: ConversationListContentDelegate?
     let listViewModel: ConversationListViewModel = ConversationListViewModel()
-    private weak var mediaPlaybackManager: MediaPlaybackManager?
     private var focusOnNextSelection = false
     private var animateNextSelection = false
     private weak var scrollToMessageOnNextSelection: ZMConversationMessage?
@@ -35,7 +38,7 @@ final class ConversationListContentController: UICollectionViewController {
     var startCallController: ConversationCallController?
     private let selectionFeedbackGenerator = UISelectionFeedbackGenerator()
     private var token: NSObjectProtocol?
-    
+
     init() {
         let flowLayout = BoundsAwareFlowLayout()
         flowLayout.minimumLineSpacing = 0
@@ -59,8 +62,12 @@ final class ConversationListContentController: UICollectionViewController {
 
         setupViews()
 
-        if traitCollection.forceTouchCapability == .available {
-            registerForPreviewing(with: self, sourceView: collectionView)
+        if #available(iOS 13, *) {
+            // handle Context menu in collection view delegate
+        } else {
+            if traitCollection.forceTouchCapability == .available {
+                registerForPreviewing(with: self, sourceView: collectionView)
+            }
         }
     }
 
@@ -68,32 +75,27 @@ final class ConversationListContentController: UICollectionViewController {
         super.viewWillAppear(animated)
 
         // viewWillAppear: can get called also when dismissing the controller above this one.
-        // The user session might not be there anymore in some cases, e.g. when logging out
-        guard let _ = ZMUserSession.shared() else {
-            return
-        }
+        // The self user might not be there anymore in some cases, e.g. when logging out
+        guard SelfUser.provider != nil else { return }
 
         updateVisibleCells()
 
         scrollToCurrentSelection(animated: false)
 
-    
         token = NotificationCenter.default.addObserver(forName: .activeMediaPlayerChanged, object: nil, queue: .main) { [weak self] _ in
             self?.activeMediaPlayerChanged()
         }
-
-        mediaPlaybackManager = AppDelegate.shared.mediaPlaybackManager
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-       
+
         if let token = token {
             NotificationCenter.default.removeObserver(token)
             self.token = nil
         }
     }
-    
+
     private func activeMediaPlayerChanged() {
         DispatchQueue.main.async(execute: {
             for cell in self.collectionView.visibleCells {
@@ -131,8 +133,6 @@ final class ConversationListContentController: UICollectionViewController {
         clearsSelectionOnViewWillAppear = false
     }
 
-
-
     // MARK: - section header
 
     override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -140,10 +140,10 @@ final class ConversationListContentController: UICollectionViewController {
         switch kind {
         case UICollectionView.elementKindSectionHeader:
             let section = indexPath.section
-            
+
             if let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: ConversationListHeaderView.reuseIdentifier, for: indexPath) as? ConversationListHeaderView {
                 header.title = listViewModel.sectionHeaderTitle(sectionIndex: section)?.uppercased()
-                
+
                 header.folderBadge = listViewModel.folderBadge(at: section)
 
                 header.collapsed = listViewModel.collapsed(at: section)
@@ -151,7 +151,7 @@ final class ConversationListContentController: UICollectionViewController {
                 header.tapHandler = {[weak self] collapsed in
                     self?.listViewModel.setCollapsed(sectionIndex: section, collapsed: collapsed)
                 }
-                
+
                 return header
             } else {
                 fatal("Unknown supplementary view for \(kind)")
@@ -160,7 +160,6 @@ final class ConversationListContentController: UICollectionViewController {
             fatal("No supplementary view for \(kind)")
         }
     }
-
 
     private func registerSectionHeader() {
         collectionView?.register(ConversationListHeaderView.self, forSupplementaryViewOfKind:
@@ -191,7 +190,7 @@ final class ConversationListContentController: UICollectionViewController {
             // Check if indexPath is valid for the collection view
             collectionView.numberOfSections > selectedIndexPath.section,
             collectionView.numberOfItems(inSection: selectedIndexPath.section) > selectedIndexPath.item else {
-            return
+                return
         }
 
         if !collectionView.indexPathsForVisibleItems.contains(selectedIndexPath) {
@@ -217,20 +216,20 @@ final class ConversationListContentController: UICollectionViewController {
 
     func select(_ conversation: ZMConversation?, scrollTo message: ZMConversationMessage?, focusOnView focus: Bool, animated: Bool, completion: Completion?) -> Bool {
         focusOnNextSelection = focus
-        
+
         selectConversationCompletion = completion
         animateNextSelection = animated
         scrollToMessageOnNextSelection = message
-        
+
         // Tell the model to select the item
         return selectModelItem(conversation)
     }
-    
+
     @discardableResult
     func selectModelItem(_ itemToSelect: ConversationListItem?) -> Bool {
         return listViewModel.select(itemToSelect: itemToSelect)
     }
-    
+
     // MARK: - UICollectionViewDelegate
 
     override func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
@@ -245,14 +244,61 @@ final class ConversationListContentController: UICollectionViewController {
     override func collectionView(_ collectionView: UICollectionView,
                                  didSelectItemAt indexPath: IndexPath) {
         selectionFeedbackGenerator.selectionChanged()
-        
-        let item = listViewModel.item(for: indexPath)
-        
+
+        openConversation(conversationListItem: listViewModel.item(for: indexPath))
+    }
+
+    // MARK: preview
+
+    private func openConversation(conversationListItem: ConversationListItem?) {
         focusOnNextSelection = true
         animateNextSelection = true
-        selectModelItem(item)
+        selectModelItem(conversationListItem)
     }
-    
+
+    // MARK: context menu
+    @available(iOS 13.0, *)
+    override func collectionView(_ collectionView: UICollectionView,
+                                 willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration,
+                                 animator: UIContextMenuInteractionCommitAnimating) {
+        guard let destinationViewController = animator.previewViewController as? ConversationPreviewViewController else { return }
+
+        animator.addAnimations { [weak self] in
+            self?.openConversation(conversationListItem: destinationViewController.conversation)
+        }
+    }
+
+    @available(iOS 13.0, *)
+    override func collectionView(_ collectionView: UICollectionView,
+                                 contextMenuConfigurationForItemAt indexPath: IndexPath,
+                                 point: CGPoint) -> UIContextMenuConfiguration? {
+        guard let conversation = listViewModel.item(for: indexPath) as? ZMConversation else {
+                return nil                
+        }
+
+        let previewProvider: UIContextMenuContentPreviewProvider = {
+            return ConversationPreviewViewController(conversation: conversation, presentingViewController: self, sourceView: collectionView.cellForItem(at: indexPath))
+        }
+
+        let actionProvider: UIContextMenuActionProvider = { _ in
+            let actions = conversation.listActions.map { action in
+                UIAction(title: action.title, image: nil) { _ in
+                    let actionController = ConversationActionController(conversation: conversation,
+                                                                        target: self,
+                                                                        sourceView: collectionView.cellForItem(at: indexPath))
+
+                    actionController.handleAction(action)
+                }
+            }
+
+            return UIMenu(title: conversation.displayName, children: actions)
+        }
+
+        return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath,
+                                          previewProvider: previewProvider,
+                                          actionProvider: actionProvider)
+    }
+
     // MARK: - UICollectionViewDataSource
 
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -262,7 +308,6 @@ final class ConversationListContentController: UICollectionViewController {
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return listViewModel.numberOfItems(inSection: section)
     }
-
 
     override func collectionView(_ cv: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let item = listViewModel.item(for: indexPath)
@@ -285,13 +330,12 @@ final class ConversationListContentController: UICollectionViewController {
 
         (cell as? SectionListCellType)?.sectionName = listViewModel.sectionCanonicalName(of: indexPath.section)
         (cell as? SectionListCellType)?.cellIdentifier = "conversation_list_cell"
-        
+
         cell.autoresizingMask = .flexibleWidth
 
         return cell
     }
 }
-
 
 extension ConversationListContentController: UICollectionViewDelegateFlowLayout {
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
@@ -354,7 +398,6 @@ extension ConversationListContentController: ConversationListViewModelDelegate {
         ensureCurrentSelection()
     }
 
-
     func listViewModelShouldBeReloaded() {
         reload()
     }
@@ -382,33 +425,37 @@ extension ConversationListContentController: ConversationListViewModelDelegate {
         using stagedChangeset: StagedChangeset<C>,
         interrupt: ((Changeset<C>) -> Bool)? = nil,
         setData: (C?) -> Void
-        ) {
+    ) {
         collectionView.reload(using: stagedChangeset, interrupt: interrupt, setData: setData)
     }
 }
 
+// MARK: iOS 12- peek pop
 extension ConversationListContentController: UIViewControllerPreviewingDelegate {
-    public func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
-        
+
+    @available(iOS, introduced: 9.0, deprecated: 13.0, renamed: "UIContextMenuInteraction")
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
         guard let previewViewController = viewControllerToCommit as? ConversationPreviewViewController else { return }
-        
-        focusOnNextSelection = true
-        animateNextSelection = true
-        selectModelItem(previewViewController.conversation)
-    }
-    
-    public func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
-        guard let indexPath = collectionView.indexPathForItem(at: location),
-              let layoutAttributes = collectionView.layoutAttributesForItem(at: indexPath),
-              let conversation = listViewModel.item(for: indexPath) as? ZMConversation else {
-            return nil
-        }
-        
-        previewingContext.sourceRect = layoutAttributes.frame
-        
-        return ConversationPreviewViewController(conversation: conversation, presentingViewController: self)
+
+        openConversation(conversationListItem: previewViewController.conversation)
     }
 
+    @available(iOS, introduced: 9.0, deprecated: 13.0, renamed: "UIContextMenuInteraction")
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+        guard let indexPath = collectionView.indexPathForItem(at: location),
+            let layoutAttributes = collectionView.layoutAttributesForItem(at: indexPath)
+            else {
+                return nil
+        }
+
+        guard let conversation = listViewModel.item(for: indexPath) as? ZMConversation else {
+            return nil
+        }
+
+        previewingContext.sourceRect = layoutAttributes.frame
+
+        return ConversationPreviewViewController(conversation: conversation, presentingViewController: self, sourceView: collectionView.cellForItem(at: indexPath))
+    }
 }
 
 extension ConversationListContentController: ConversationListCellDelegate {

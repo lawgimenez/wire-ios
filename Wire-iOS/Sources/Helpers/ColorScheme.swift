@@ -18,8 +18,10 @@
 
 import Foundation
 import UIKit
+import WireUtilities
 
-@objc enum ColorSchemeVariant: UInt {
+@objc
+enum ColorSchemeVariant: UInt {
     case light, dark
 };
 
@@ -40,6 +42,8 @@ extension UIColor {
     static var lightGraphiteWhite: UIColor = lightGraphiteAlpha8.removeAlphaByBlending(with: .white98)
     static var lightGraphiteDark: UIColor = lightGraphiteAlpha8.removeAlphaByBlending(with: .backgroundGraphite)
 
+    static var graphiteDark: UIColor = UIColor(rgb:(50, 54, 57))
+      
     static var backgroundGraphite: UIColor = UIColor(rgb:(22, 24, 25))
     static var backgroundGraphiteAlpha40: UIColor = UIColor(rgba:(22, 24, 25, 0.4))
 
@@ -67,7 +71,7 @@ extension UIColor {
 }
 
 
-@objc public enum ColorSchemeColor: Int {
+enum ColorSchemeColor: Int {
     case textForeground
     case textBackground
     case textDimmed
@@ -126,6 +130,8 @@ extension UIColor {
     case secondaryActionDimmed
 
     case errorIndicator
+    
+    case landingScreen
 
     fileprivate func colorPair(accentColor: UIColor) -> ColorPair  {
         switch self {
@@ -225,6 +231,9 @@ extension UIColor {
 
         case .errorIndicator:
             return ColorPair(light: UIColor(rgb: 0xE60606), dark: UIColor(rgb: 0xFC3E37))
+            
+        case .landingScreen:
+            return ColorPair(light: .graphiteDark, dark: .white)
         }
     }
 }
@@ -232,8 +241,8 @@ extension UIColor {
 final class ColorScheme: NSObject {
     private(set) var colors: [AnyHashable : Any]?
     
-    @objc
     var variant: ColorSchemeVariant = .light
+    
     private(set) var defaultColorScheme: ColorScheme?
     var accentColor: UIColor = .red
         
@@ -245,30 +254,13 @@ final class ColorScheme: NSObject {
         return variant == .light ? .light : .dark
     }
     
-    func blurEffectStyle() -> UIBlurEffect.Style {
-        return ColorScheme.blurEffectStyle(for: variant)
-    }
-    
-    class func blurEffectStyle(for variant: ColorSchemeVariant) -> UIBlurEffect.Style {
-        return variant == .light ? .light : .dark
-    }
-    
-    func setVariant(_ variant: ColorSchemeVariant) {
-        self.variant = variant
-    }
-    
-    @objc(defaultColorScheme)
     static let `default`: ColorScheme = ColorScheme()
 
-    @objc(colorWithName:)
-    func color(named: ColorSchemeColor) -> UIColor {
-        return color(named: named, variant: variant)
-    }
-    
-    @objc(colorWithName:variant:)
-    func color(named: ColorSchemeColor, variant: ColorSchemeVariant) -> UIColor {
+    func color(named: ColorSchemeColor, variant: ColorSchemeVariant? = nil) -> UIColor {
+        let colorSchemeVariant = variant ?? self.variant
+        
         let colorPair = named.colorPair(accentColor: accentColor)
-        switch variant {
+        switch colorSchemeVariant {
         case .dark:
             return colorPair.dark
         case .light:
@@ -276,7 +268,6 @@ final class ColorScheme: NSObject {
         }
     }
     
-    @objc(nameAccentForColor:variant:)
     func nameAccent(for color: ZMAccentColor, variant: ColorSchemeVariant) -> UIColor {
         return UIColor.nameColor(for: color, variant: variant)
     }
@@ -296,13 +287,7 @@ fileprivate extension ColorPair {
 
 extension UIColor {
     
-    @objc(wr_colorFromColorScheme:)
-    static func from(scheme: ColorSchemeColor) -> UIColor {
-        return ColorScheme.default.color(named: scheme)
-    }
-    
-    @objc(wr_colorFromColorScheme:variant:)
-    static func from(scheme: ColorSchemeColor, variant: ColorSchemeVariant) -> UIColor {
+    static func from(scheme: ColorSchemeColor, variant: ColorSchemeVariant? = nil) -> UIColor {
         return ColorScheme.default.color(named: scheme, variant: variant)
     }
 

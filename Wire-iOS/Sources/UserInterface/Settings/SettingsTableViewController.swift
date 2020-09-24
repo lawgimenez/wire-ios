@@ -19,15 +19,17 @@
 
 import UIKit
 import Cartography
+import WireSyncEngine
 
-class SettingsBaseTableViewController: UIViewController {
+class SettingsBaseTableViewController: UIViewController, SpinnerCapable {
+    var dismissSpinner: SpinnerCompletion?
 
     var tableView: UITableView
     let topSeparator = OverflowSeparatorView()
     let footerSeparator = OverflowSeparatorView()
     private let footerContainer = UIView()
 
-    public var footer: UIView? {
+    var footer: UIView? {
         didSet {
             updateFooter(footer)
         }
@@ -147,7 +149,7 @@ extension SettingsBaseTableViewController: UITableViewDelegate, UITableViewDataS
 
 }
 
-class SettingsTableViewController: SettingsBaseTableViewController {
+final class SettingsTableViewController: SettingsBaseTableViewController {
 
     let group: SettingsInternalGroupCellDescriptorType
     fileprivate var sections: [SettingsSectionDescriptorType]
@@ -166,7 +168,7 @@ class SettingsTableViewController: SettingsBaseTableViewController {
         }
 
         if let userSession = ZMUserSession.shared() {
-            self.selfUserObserver = UserChangeInfo.add(observer: self, for: ZMUser.selfUser(), in: userSession)
+            self.selfUserObserver = UserChangeInfo.add(observer: self, for: userSession.selfUser, in: userSession)
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
@@ -229,7 +231,7 @@ class SettingsTableViewController: SettingsBaseTableViewController {
         let sectionDescriptor = sections[(indexPath as NSIndexPath).section]
         let property = sectionDescriptor.visibleCellDescriptors[(indexPath as NSIndexPath).row]
 
-        property.select(.none)
+        property.select(SettingsPropertyValue.none)
         tableView.deselectRow(at: indexPath, animated: false)
     }
 

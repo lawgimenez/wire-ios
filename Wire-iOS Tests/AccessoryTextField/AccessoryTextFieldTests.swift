@@ -16,11 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
 import XCTest
 @testable import Wire
+import SnapshotTesting
 
-final class AccessoryTextFieldTests: ZMSnapshotTestCase {
+final class AccessoryTextFieldTests: XCTestCase {
     var sut: AccessoryTextField!
 
     override func setUp() {
@@ -39,7 +39,7 @@ final class AccessoryTextFieldTests: ZMSnapshotTestCase {
         // GIVEN
 
         // WHEN && THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
 
     func testThatItShowsPlaceHolderText() {
@@ -49,7 +49,7 @@ final class AccessoryTextFieldTests: ZMSnapshotTestCase {
         sut.placeholder = "TEAM NAME"
 
         // THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
 
     func testThatItShowsTextInputedAndConfrimButtonIsEnabled() {
@@ -60,7 +60,7 @@ final class AccessoryTextFieldTests: ZMSnapshotTestCase {
         sut.textFieldDidChange(textField: sut)
 
         // THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
 
     func testThatItShowsPasswordInputedAndConfirmButtonIsEnabled() {
@@ -72,7 +72,7 @@ final class AccessoryTextFieldTests: ZMSnapshotTestCase {
         sut.textFieldDidChange(textField: sut)
 
         // THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
 
     func testThatItShowsGuidanceDot() {
@@ -85,15 +85,6 @@ final class AccessoryTextFieldTests: ZMSnapshotTestCase {
         sut.textFieldDidChange(textField: sut)
 
         // THEN
-        self.verify(view: sut.snapshotView())
-    }
-}
-
-fileprivate extension UIView {
-    func snapshotView() -> UIView {
-        self.layer.speed = 0
-        self.setNeedsLayout()
-        self.layoutIfNeeded()
-        return self
+        verify(matching: sut)
     }
 }

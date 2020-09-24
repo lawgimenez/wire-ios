@@ -18,12 +18,13 @@
 
 import Foundation
 import WireSyncEngine
+import WireDataModel
 
 /// Observes events from the message toolbox.
 protocol MessageToolboxViewDelegate: class {
     func messageToolboxDidRequestOpeningDetails(_ messageToolboxView: MessageToolboxView, preferredDisplayMode: MessageDetailsDisplayMode)
     func messageToolboxViewDidSelectResend(_ messageToolboxView: MessageToolboxView)
-    func messageToolboxViewDidSelectDelete(_ messageToolboxView: MessageToolboxView)
+    func messageToolboxViewDidSelectDelete(_ sender: UIView?)
     func messageToolboxViewDidRequestLike(_ messageToolboxView: MessageToolboxView)
 }
 
@@ -62,6 +63,7 @@ final class MessageToolboxView: UIView {
         let stack = UIStackView()
         stack.axis = .horizontal
         stack.spacing = 3
+        stack.isAccessibilityElement = false
         return stack
     }()
 
@@ -144,6 +146,13 @@ final class MessageToolboxView: UIView {
         super.init(frame: frame)
         backgroundColor = .clear
         clipsToBounds = true
+                
+        setupViews()
+        createConstraints()
+        
+        tapGestureRecogniser = UITapGestureRecognizer(target: self, action: #selector(MessageToolboxView.onTapContent(_:)))
+        tapGestureRecogniser.delegate = self
+        addGestureRecognizer(tapGestureRecogniser)
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -235,15 +244,8 @@ final class MessageToolboxView: UIView {
     func configureForMessage(_ message: ZMConversationMessage, forceShowTimestamp: Bool, animated: Bool = false) {
         if dataSource?.message.nonce != message.nonce {
             dataSource = MessageToolboxDataSource(message: message)
-
-            setupViews()
-            createConstraints()
-            
-            tapGestureRecogniser = UITapGestureRecognizer(target: self, action: #selector(MessageToolboxView.onTapContent(_:)))
-            tapGestureRecogniser.delegate = self
-            addGestureRecognizer(tapGestureRecogniser)
         }
-
+        
         self.forceShowTimestamp = forceShowTimestamp
         reloadContent(animated: animated)
     }
@@ -386,8 +388,8 @@ final class MessageToolboxView: UIView {
     }
 
     @objc
-    private func deleteMessage() {
-        delegate?.messageToolboxViewDidSelectDelete(self)
+    private func deleteMessage(sender: UIView?) {
+        delegate?.messageToolboxViewDidSelectDelete(sender)
     }
 
     func update(for change: MessageChangeInfo) {

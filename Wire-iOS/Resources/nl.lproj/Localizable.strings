@@ -27,6 +27,7 @@
 "general.edit" = "Bewerken";
 "general.done" = "Klaar";
 "general.confirm" = "OK";
+"general.later" = "Later";
 "general.skip" = "Later";
 "general.accept" = "Neem op";
 "general.decline" = "Nee, bedankt";
@@ -229,6 +230,8 @@
 "conversation.voiceover.value.active" = "actief";
 "conversation.voiceover.value.disabled" = "uitgeschakeld";
 
+"conversation.status.secutity_alert.default" = "New security alert";
+
 "conversation.status.typing" = "Typt een bericht…";
 "conversation.status.typing.group" = "%@: Typt een bericht…";
 "conversation.status.silenced" = "Gedempt";
@@ -357,10 +360,11 @@
 "image_confirmer.confirm" = "OK";
 "image_confirmer.cancel" = "Annuleer";
 "image.add_sketch" = "Voeg een tekening toe";
+"image.add_emoji" = "Add an emoji";
 "image.edit_image" = "Bewerk afbeelding";
 
 // Camera access
-"camera_access.denied" = "Wire heeft toegang nodig tot de camera.";
+"camera_access.denied" = "Wire needs access to the camera";
 "video_call.camera_access.denied" = "Wire heeft geen toegang to je camera";
 "camera_access.denied.instruction" = "";
 "camera_access.denied.open_settings" = "Open instellingen voor Wire om toegang tot de camera te geven";
@@ -423,6 +427,12 @@
 "content.message.link_attachment.accessibility_label.youtube" = "YouTube video voorvertoning";
 "content.message.link_attachment.accessibility_label.soundcloud_song" = "SoundCloud nummer voorvertoning";
 "content.message.link_attachment.accessibility_label.soundcloud_set" = "SoundCloud afspeellijst voorvertoning";
+
+// Digital signature
+"digital_signature.alert.error" = "Unfortunately, your digital signature failed.";
+"digital_signature.alert.error.no_consent_url" = "Unfortunately, the signature form did not open. Please try again.";
+"digital_signature.alert.error.no_signature" = "Unfortunately, your digital signature failed. Please try again.";
+"digital_signature.alert.download_necessary" = "Please save and read the document before signing it.";
 
 // New conversation participants added / removed / started system message
 
@@ -561,6 +571,7 @@
 "content.message.go_to_conversation" = "Tonen";
 "content.message.forward.to" = "Zoeken…";
 "content.message.open" = "Openen";
+"content.message.sign" = "Sign";
 "content.message.copy" = "Kopiëren";
 "content.message.download" = "Download";
 "content.message.details" = "Beschrijving";
@@ -641,9 +652,9 @@
 "voice.alert.call_in_progress.message" = "Je kunt maximaal een gesprek tegelijk voeren";
 "voice.alert.call_in_progress.confirm" = "OK";
 
-"voice.alert.microphone_warning.title" = "Wire heeft toegang nodig tot de microfoon.";
+"voice.alert.microphone_warning.title" = "Wire needs access to the microphone";
 
-"voice.alert.camera_warning.title" = "Wire heeft toegang nodig tot de camera.";
+"voice.alert.camera_warning.title" = "Wire needs access to the camera";
 
 "voice.top_overlay.tap_to_return" = "Tik om terug te keren";
 "voice.top_overlay.accessibility_title" = "Uitgaand gesprek";
@@ -658,6 +669,7 @@
 "call.status.reconnecting" = "Opnieuw verbinden…";
 "call.status.terminating" = "Ophangen…";
 "call.status.constant_bitrate" = "Constante Bit Rate";
+"call.status.variable_bitrate" = "Variable Bit Rate";
 
 "call.participants.show_all" = "Toon alle (%@)";
 "call.participants.list.title" = "Deelnemers";
@@ -679,6 +691,9 @@
 "call.alert.ongoing.join.message" = "A call is active in another conversation.\nJoining this call will hang up the other one.";
 "call.alert.ongoing.start.button" = "Toch bellen";
 "call.alert.ongoing.join.button" = "Toch aanmelden";
+
+"call.quality.indicator.message" = "Your calling relay is not reachable. This may affect your call experience.";
+"call.quality.indicator.more_info.button.text" = "More info";
 
 // Call Actions (accessibility)
 
@@ -984,12 +999,14 @@
 "self.settings.enable_read_receipts.title" = "Stuur met leesbevestigingen";
 "self.settings.privacy_section_group.subtitle" = "When this is off, you won’t be able to see read receipts from other people.\n\nThis setting does not apply to group conversations.";
 
+"self.settings.encrypt_messages_at_rest.title" = "Encrypt messages at rest";
+
 "self.settings.account_picture_group.picture" = "Foto";
 "self.settings.account_picture_group.color" = "Kleur";
 
 "self.settings.account_personal_information_group.title" = "Persoonlijke informatie";
 
-"self.settings.account_picture_group.theme" = "Donker thema";
+"self.settings.account_picture_group.theme" = "Theme";
 
 "self.settings.device_details.fingerprint.subtitle" = "Wire geeft elk apparaat een eigen vingerafdruk. Vergelijk deze en verifieer je apparaten en gesprekken.";
 "self.settings.device_details.reset_session.subtitle" = "Als de digitale vingerafdruk niet overeenkomt, herstart dan de sessie om nieuwe encryptiesleutels aan te maken op beide apparaten.";
@@ -1021,7 +1038,7 @@
 
 "self.settings.account_section.handle.change.title" = "Gebruikersnaam";
 "self.settings.account_section.handle.change.save" = "Opslaan";
-"self.settings.account_section.handle.change.footer" = "Ten minste 2 tekens. a—z, 0—9, and _ aleen.";
+"self.settings.account_section.handle.change.footer" = "At least 2 characters. a—z, 0—9, and  '.', '-', '_'  only.";
 "self.settings.account_section.handle.change.footer.unavailable" = "Al in gebruik";
 
 "self.settings.account_section.handle.change.failure_alert.title" = "Niet mogelijk om je gebruikersnaam te registreren";
@@ -1091,6 +1108,11 @@
 "self.settings.popular_demand.send_button.footer" = "Zet het versturen via de enter-toets uit.";
 "self.settings.popular_demand.dark_mode.footer" = "Switch between dark and light theme.";
 
+// dark theme
+"dark_theme.option.dark" = "Dark";
+"dark_theme.option.light" = "Light";
+"dark_theme.option.system" = "Sync with system settings";
+
 // Open in
 "self.settings.external_apps.header" = "Open met";
 
@@ -1134,6 +1156,7 @@
 "self.settings.privacy_security.lock_app.subtitle.touch_id" = "Ontgrendel met Touch ID of voer je toegangscode in.";
 "self.settings.privacy_security.lock_app.subtitle.face_id" = "Ontgrendel met Face ID of voer je toegangscode in.";
 "self.settings.privacy_security.lock_app.subtitle.none" = "Ontgrendel door het invoeren van uw toegangscode.";
+"self.settings.privacy_security.lock_app.subtitle.custom_app_lock_reminder" = "If forgotten, your passcode can not be recovered.";
 
 "self.settings.privacy_security.lock_app.description" = "Ontgrendel Wire";
 "self.settings.privacy_security.lock_password.description.unlock" = "Unlock with your password.";
@@ -1155,10 +1178,15 @@
 "self.settings.privacy.clear_history.subtitle" = "Dit verwijdert alle inhoud van al je gesprekken.";
 
 "self.settings.advanced.title" = "Geavanceerd";
+"self.settings.advanced.conference_calling.title" = "Conference Calls";
+"self.settings.advanced.conference_calling.subtitle" = "When this is on, audio and video conference calling is enabled, which allows a higher number of participants.";
+"self.settings.advanced.conference_calling.toggle" = "Beta Program";
 "self.settings.advanced.troubleshooting.title" = "Probleemoplossing";
 "self.settings.advanced.troubleshooting.submit_debug.title" = "Foutrapportage";
 "self.settings.advanced.debugging_tools.title" = "Debugging Tools";
 "self.settings.advanced.debugging_tools.first_unread_conversation.title" = "Find first unread conversation";
+"self.settings.advanced.debugging_tools.show_user_id.title" = "Show my user ID";
+"self.settings.advanced.debugging_tools.enter_debug_command.title" = "Enter debug command";
 "self.settings.advanced.troubleshooting.submit_debug.subtitle" = "This information helps Wire Support diagnose calling problems and improve the overall app experience.";
 "self.settings.advanced.reset_push_token.title" = "Herstel de Push Notifications Token";
 "self.settings.advanced.reset_push_token.subtitle" = "Als je problemen ondervindt met push-notificaties, kan Wire je vragen om deze token te herstellen.";
@@ -1229,8 +1257,10 @@
 // Landing screen
 
 "landing.header" = "Wire. Voeg je account toe.";
-"landing.welcome_message" = "Welcome to %@";
-"landing.create_account.title" = "Create an Account";
+"landing.welcome_message" = "Trying to create a Pro or Enterprise account for your business or organization?";
+"landing.welcome_submessage" = "Unfortunately, that's not possible in the app - once you have created your team, you can log in here";
+"landing.create_account.title" = "Create a Wire personal account";
+"landing.create_account.infotitle" = "Chat with friends and family?";
 "landing.create_account.subtitle" = "Chat privately with groups of friends\U00A0and\U00A0family";
 "landing.create_team.title" = "Pro";
 "landing.create_team.subtitle" = "Secure collaboration for businesses, institutions and professional\U00A0organizations";
@@ -1375,7 +1405,7 @@
 
 // SSO – Company Login
 "login.sso.alert.title" = "Enterprise Login";
-"login.sso.alert.message.sso_and_email" = "Please enter your email or SSO code:";
+"login.sso.alert.message.sso_and_email" = "Please enter your email or SSO code. If your email matches an enterprise installation of Wire, this app will connect to that server.";
 "login.sso.alert.message.sso_only" = "Please enter your SSO code:";
 "login.sso.alert.action" = "Inloggen";
 "login.sso.alert.text_field.placeholder.sso_and_email" = "email or SSO access code";
@@ -1394,6 +1424,9 @@
 "login.sso.error.alert.domain_not_registered.message" = "This email cannot be used for enterprise login. Please enter the SSO code to proceed.";
 "login.sso.error.alert.domain_associated_with_wrong_server.message" = "This email is linked to a different server, but the app can only be connected to one server at a time. Please log out of all Wire accounts on this device and try to login again.";
 "login.sso.error.alert.unknown.message" = "Probeer het later alsjeblieft opnieuw.";
+"login.sso.backend_switch.title" = "Redirecting...";
+"login.sso.backend_switch.subtitle" = "You are being redirected to your dedicated enterprise service.";
+"login.sso.backend_switch.information" = "Provide credentials only if you're sure this is your organization's log in.";
 
 
 // Restore In Progress Loading Titles
@@ -1509,8 +1542,8 @@
 "error.name_and_email" = "Vul je naam en een geldig e-mailadres in";
 "error.full_name" = "Vul je volledige naam in a.u.b.";
 "error.email" = "Vul een geldig e-mailadres in a.u.b.";
-"error.input.too_long" = "Ingevoerde tekst is te lang";
-"error.input.too_short" = "Ingevoerde tekst is te kort";
+"error.input.too_long" = "Please enter a shorter username";
+"error.input.too_short" = "Please enter a longer username";
 "error.email.invalid" = "Vul een geldig e-mailadres in a.u.b.";
 "error.phone.invalid" = "Voer een geldig telefoonnummer in";
 
@@ -1526,6 +1559,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Er is een fout opgetreden, probeer het nogmaals";
 "error.user.needs_credentials" = "Controleer je gegevens en probeer het nogmaals.";
+"error.user.domain_blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
 "error.user.invalid_credentials" = "Controleer je gegevens en probeer het nogmaals.";
 "error.user.account_pending_activation" = "Het account dat je probeert te bereiken is nog niet geactiveerd. Verifieer je gegevens.";
 "error.user.network_error" = "Er lijkt een probleem te zijn met het netwerk. Probeer het later opnieuw.";
@@ -1745,3 +1779,56 @@
 // Account deleted alert
 "account_deleted_session_expired_alert.title" = "Your session expired";
 "account_deleted_session_expired_alert.message" = "The application did not communicate with the server for a long period of time, or your session has been remotely invalidated.";
+
+// Button cell state
+"button_message_cell.state.unselected" = "unselected";
+"button_message_cell.state.selected" = "selected";
+"button_message_cell.state.confirmed" = "confirmed";
+
+"button_message_cell.generic_error" = "Your answer can't be sent, please retry.";
+
+// Custom app lock
+
+"passcode.hint_label" = "Passcode";
+
+// Custom app lock - create passcode
+"create_passcode.textfield.placeholder" = "";
+"create_passcode.title_label" = "Create a passcode";
+"create_passcode.info_label" = "It will be used to unlock Wire. If you forget this passcode ";
+"create_passcode.info_label.highlighted" = "it can not be recovered.";
+"create_passcode.create_button.title" = "create passcode";
+
+// Custom app lock - create passcode validation
+"create_passcode.validation.too_short" = "At least eight characters long";
+"create_passcode.validation.no_lowercase_char" = "A lowercase letter";
+"create_passcode.validation.no_uppercase_char" = "An uppercase letter";
+"create_passcode.validation.no_number" = "A number";
+"create_passcode.validation.no_special_char" = "A special character";
+
+// Custom app lock - unlock
+"unlock.textfield.placeholder" = "Enter your passcode";
+"unlock.title_label" = "Enter passcode to unlock Wire";
+"unlock.wipe_button" = "Access as new device";
+"unlock.error_label" = "Wrong passcode";
+"unlock.submit_button.title" = "unlock";
+
+// Wipe database
+
+"wipe_database.title_label" = "Access as new device";
+"wipe_database.info_label" = "The data stored on this device can only be accessed with your passcode.\n\nIf you have forgotten your passcode, you can delete the database to log in again as a new device.\n\nBy deleting the database, ";
+"wipe_database.info_label.highlighted" = "all local data and messages for this account will be permanently deleted.";
+
+"wipe_database.button.title" = "I want to delete the database";
+
+// Wipe database alert
+
+"wipe_database.alert.description" = "Confirm database deletion";
+"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device.";
+"wipe_database.alert.placeholder" = "Type 'Delete'";
+"wipe_database.alert.confirm" = "Verwijderen";
+"wipe_database.alert.confirm_input" = "Verwijderen";
+
+// Wipe database completion
+
+"wipe_database_completion.title" = "Database deleted";
+"wipe_database_completion.subtitle" = "Your data and messages have been deleted. You can now log in again as a new device.";

@@ -21,23 +21,25 @@ import Foundation
 
 final class MockZMUserSession: NSObject, UserSessionSwiftInterface {
 
-    func performChanges(_ block: @escaping () -> Swift.Void) {
-        block()
+    func perform(_ changes: @escaping () -> Swift.Void) {
+        changes()
     }
 
-    func enqueueChanges(_ block: @escaping () -> Swift.Void) {
-        block()
+    func enqueue(_ changes: @escaping () -> Swift.Void) {
+        changes()
     }
 
-    func enqueueChanges(_ block: @escaping () -> Void, completionHandler: (() -> Void)!) {
-        block()
-        completionHandler()
+    func enqueue(_ changes: @escaping () -> Void, completionHandler: (() -> Void)?) {
+        changes()
+        completionHandler?()
     }
     
     var mockConversationDirectory = MockConversationDirectory()
-    var conversationDirectory: ConversationDirectoryType? {
+    var conversationDirectory: ConversationDirectoryType {
         return mockConversationDirectory
     }
 
     var isNotificationContentHidden: Bool = false
+    
+    var encryptMessagesAtRest: Bool = false
 }

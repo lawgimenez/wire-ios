@@ -17,13 +17,14 @@
 //
 
 import Foundation
+import UIKit
 
 public enum FontTextStyle: String {
     case largeTitle  = "largeTitle"
     case inputText   = "inputText"
 }
 
-public enum FontSize: String {
+enum FontSize: String {
     case large  = "large"
     case normal = "normal"
     case medium = "medium"
@@ -92,26 +93,10 @@ extension UIFont {
             return self.systemFont(ofSize: round(size * UIFont.wr_preferredContentSizeMultiplier(for: contentSizeCategory)))
         }
     }
-    
-    @objc public var classySystemFontName: String {
-        get {
-            let weightSpecifier = { () -> String in 
-                guard #available(iOSApplicationExtension 8.2, *),
-                    let traits = self.fontDescriptor.object(forKey: UIFontDescriptor.AttributeName.traits) as? NSDictionary,
-                    let floatWeight = traits[UIFontDescriptor.TraitKey.weight] as? NSNumber else {
-                        return ""
-                }
-                
-                return "-\(FontWeight(weight: UIFont.Weight(rawValue: CGFloat(floatWeight.floatValue))).rawValue.capitalized)"
-            }()
-            
-            return "System\(weightSpecifier) \(self.pointSize)"
-        }
-    }
 }
 
 public struct FontSpec: Hashable {
-    public let size: FontSize
+    let size: FontSize
     public let weight: FontWeight?
     public let fontTextStyle: FontTextStyle?
 
@@ -122,7 +107,7 @@ public struct FontSpec: Hashable {
     ///   - size: a FontSize enum
     ///   - weight: a FontWeight enum, if weight == nil, then apply the default value .light
     ///   - fontTextStyle: FontTextStyle enum value, if fontTextStyle == nil, then apply the default style.
-    public init(_ size: FontSize, _ weight: FontWeight?, _ fontTextStyle: FontTextStyle? = .none) {
+    init(_ size: FontSize, _ weight: FontWeight?, _ fontTextStyle: FontTextStyle? = .none) {
         self.size = size
         self.weight = weight
         self.fontTextStyle = fontTextStyle
@@ -130,7 +115,7 @@ public struct FontSpec: Hashable {
 }
 
 extension FontSpec {
-    public var fontWithoutDynamicType: UIFont? {
+    var fontWithoutDynamicType: UIFont? {
         return FontScheme(contentSizeCategory: .medium).font(for: self)
     }
 }
@@ -219,11 +204,13 @@ final class FontScheme {
         mapping[FontSpec(.normal, .bold, .none)]   = UIFont.systemFont(ofSize: 16, contentSizeCategory: contentSizeCategory, weight: .bold)
 
         mapping[FontSpec(.medium, .none, .none)]     = UIFont.systemFont(ofSize: 12, contentSizeCategory: contentSizeCategory, weight: .light)
+        mapping[FontSpec(.medium, .bold, .none)]   = UIFont.systemFont(ofSize: 12, contentSizeCategory: contentSizeCategory, weight: .bold)
         mapping[FontSpec(.medium, .medium, .none)]   = UIFont.systemFont(ofSize: 12, contentSizeCategory: contentSizeCategory, weight: .medium)
         mapping[FontSpec(.medium, .semibold, .none)] = UIFont.systemFont(ofSize: 12, contentSizeCategory: contentSizeCategory, weight: .semibold)
         mapping[FontSpec(.medium, .regular, .none)]  = UIFont.systemFont(ofSize: 12, contentSizeCategory: contentSizeCategory, weight: .regular)
 
         mapping[FontSpec(.small, .none, .none)]      = UIFont.systemFont(ofSize: 11, contentSizeCategory: contentSizeCategory, weight: .light)
+        mapping[FontSpec(.small, .bold, .none)]    = UIFont.systemFont(ofSize: 11, contentSizeCategory: contentSizeCategory, weight: .bold)
         mapping[FontSpec(.small, .medium, .none)]    = UIFont.systemFont(ofSize: 11, contentSizeCategory: contentSizeCategory, weight: .medium)
         mapping[FontSpec(.small, .semibold, .none)]  = UIFont.systemFont(ofSize: 11, contentSizeCategory: contentSizeCategory, weight: .semibold)
         mapping[FontSpec(.small, .regular, .none)]   = UIFont.systemFont(ofSize: 11, contentSizeCategory: contentSizeCategory, weight: .regular)
@@ -232,7 +219,7 @@ final class FontScheme {
         return mapping
     }
     
-    @objc public convenience init(contentSizeCategory: UIContentSizeCategory) {
+    convenience init(contentSizeCategory: UIContentSizeCategory) {
         self.init(fontMapping: type(of: self).defaultFontMapping(with: contentSizeCategory))
     }
     

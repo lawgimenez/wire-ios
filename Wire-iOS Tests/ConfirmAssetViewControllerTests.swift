@@ -20,12 +20,13 @@ import XCTest
 import FLAnimatedImage
 @testable import Wire
 
-final class ConfirmAssetViewControllerTests: ZMSnapshotTestCase {
+final class ConfirmAssetViewControllerTests: XCTestCase {
 
     var sut: ConfirmAssetViewController!
 
     override func setUp() {
         super.setUp()
+        ColorScheme.default.variant = .light
     }
 
     override func tearDown() {
@@ -34,30 +35,30 @@ final class ConfirmAssetViewControllerTests: ZMSnapshotTestCase {
     }
 
     func testThatItRendersTheAssetViewControllerWithLandscapeImage() {
-        sut = ConfirmAssetViewController()
+        sut = ConfirmAssetViewController(context: ConfirmAssetViewController.Context(asset: .image(mediaAsset: image(inTestBundleNamed: "unsplash_matterhorn.jpg"))))
 
         accentColor = .strongLimeGreen
-        sut.image = image(inTestBundleNamed: "unsplash_matterhorn.jpg")
         sut.previewTitle = "Matterhorn"
-        verifyInAllIPhoneSizes(view: sut.view)
+
+        verifyAllIPhoneSizes(matching: sut)
     }
-        
+
     func testThatItRendersTheAssetViewControllerWithPortraitImage() {
-        sut = ConfirmAssetViewController()
+        sut = ConfirmAssetViewController(context: ConfirmAssetViewController.Context(asset: .image(mediaAsset: image(inTestBundleNamed: "unsplash_burger.jpg"))))
 
         accentColor = .vividRed
-        sut.image = image(inTestBundleNamed: "unsplash_burger.jpg")
         sut.previewTitle = "Burger & Beer"
-        verifyInAllIPhoneSizes(view: sut.view)
+
+        verifyAllIPhoneSizes(matching: sut)
     }
-    
+
     func testThatItRendersTheAssetViewControllerWithSmallImage() {
-        sut = ConfirmAssetViewController()
+        sut = ConfirmAssetViewController(context: ConfirmAssetViewController.Context(asset: .image(mediaAsset: image(inTestBundleNamed: "unsplash_small.jpg").imageScaled(with: 0.5)!)))
 
         accentColor = .vividRed
-        sut.image = image(inTestBundleNamed: "unsplash_small.jpg").imageScaled(with: 0.5);
         sut.previewTitle = "Sea Food"
-        verifyInAllIPhoneSizes(view: sut.view)
+
+        verifyAllIPhoneSizes(matching: sut)
     }
 }
 
@@ -65,23 +66,17 @@ final class ConfirmAssetViewControllerTests: ZMSnapshotTestCase {
 
 extension ConfirmAssetViewControllerTests {
     func testThatItShowsEditOptionsForSignalFrameGIF() {
-        // GIVEN
-        sut = ConfirmAssetViewController()
-
-        // WHEN
-        sut.image = image(inTestBundleNamed: "not_animated.gif")
+        // GIVEN & WHEN
+        sut = ConfirmAssetViewController(context: ConfirmAssetViewController.Context(asset: .image(mediaAsset: image(inTestBundleNamed: "not_animated.gif"))))
 
         // THEN
         XCTAssert(sut.showEditingOptions)
     }
 
     func testThatItHidesEditOptionsForAnimatedGIF() {
-        // GIVEN
-        sut = ConfirmAssetViewController()
-
-        // WHEN
+        // GIVEN & WHEN
         let data = dataInTestBundleNamed("animated.gif")
-        sut.image = FLAnimatedImage(animatedGIFData: data)
+        sut = ConfirmAssetViewController(context: ConfirmAssetViewController.Context(asset: .image(mediaAsset: FLAnimatedImage(animatedGIFData: data))))
 
         // THEN
         XCTAssertFalse(sut.showEditingOptions)

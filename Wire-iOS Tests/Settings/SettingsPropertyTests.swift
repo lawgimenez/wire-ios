@@ -18,9 +18,10 @@
 
 
 import XCTest
+import WireCommonComponents
 @testable import Wire
 
-@objcMembers class MockZMEditableUser: MockUser, ZMEditableUser, ValidatorType {
+final class MockZMEditableUser: MockUser, ZMEditableUser, ValidatorType {
     var needsRichProfileUpdate: Bool = false
     
     var enableReadReceipts: Bool = false
@@ -36,7 +37,7 @@ import XCTest
     
 }
 
-class ZMMockAVSMediaManager: AVSMediaManagerInterface {
+final class ZMMockAVSMediaManager: AVSMediaManagerInterface {
     var isMicrophoneMuted: Bool = false
 
     var intensityLevel : AVSIntensityLevel = .none
@@ -44,11 +45,11 @@ class ZMMockAVSMediaManager: AVSMediaManagerInterface {
     func playMediaByName(_ name: String!) { }
 }
 
-class ZMMockTracking: TrackingInterface {
+final class ZMMockTracking: TrackingInterface {
     var disableCrashAndAnalyticsSharing: Bool = false
 }
 
-class SettingsPropertyTests: XCTestCase {
+final class SettingsPropertyTests: XCTestCase {
     var userDefaults: UserDefaults!
 
     override func setUp() {
@@ -62,7 +63,10 @@ class SettingsPropertyTests: XCTestCase {
     }
 
     
-    func saveAndCheck<T>(_ property: SettingsProperty, value: T, file: String = #file, line: UInt = #line) throws where T: Equatable {
+    func saveAndCheck<T>(_ property: SettingsProperty,
+                         value: T,
+                         file: String = #file,
+                         line: UInt = #line) throws where T: Equatable {
         var property = property
         try property << value
         if let readValue : T = property.rawValue() as? T {
@@ -89,14 +93,14 @@ class SettingsPropertyTests: XCTestCase {
     
     func testThatIntegerUserDefaultsSettingSave() {
         // given
-        let property = SettingsUserDefaultsProperty(propertyName: SettingsPropertyName.darkMode, userDefaultsKey: UserDefaultColorScheme, userDefaults: self.userDefaults)
+        let property = SettingsUserDefaultsProperty(propertyName: SettingsPropertyName.darkMode, userDefaultsKey: SettingKey.colorScheme.rawValue, userDefaults: self.userDefaults)
         // when & then
         try! self.saveAndCheck(property, value: "light")
     }
     
     func testThatBoolUserDefaultsSettingSave() {
         // given
-        let property = SettingsUserDefaultsProperty(propertyName: SettingsPropertyName.chatHeadsDisabled, userDefaultsKey: UserDefaultChatHeadsDisabled, userDefaults: self.userDefaults)
+        let property = SettingsUserDefaultsProperty(propertyName: SettingsPropertyName.chatHeadsDisabled, userDefaultsKey: SettingKey.chatHeadsDisabled.rawValue, userDefaults: self.userDefaults)
         // when & then
         try! self.saveAndCheck(property, value: NSNumber(value: true))
     }
@@ -114,16 +118,30 @@ class SettingsPropertyTests: XCTestCase {
         // when & then
         try! self.saveAndCheck(property, value: "Test")
     }
-    
-    func testThatSoundLevelPropertySetsValue() {
-        // given
+
+    private var settingsPropertyFactory: SettingsPropertyFactory {
         let selfUser = MockZMEditableUser()
         let userSession = MockZMUserSession()
         let mediaManager = ZMMockAVSMediaManager()
         let tracking = ZMMockTracking()
 
-        let factory = SettingsPropertyFactory(userDefaults: self.userDefaults, tracking: tracking, mediaManager: mediaManager, userSession: userSession, selfUser: selfUser)
+        return SettingsPropertyFactory(userDefaults: userDefaults, tracking: tracking, mediaManager: mediaManager, userSession: userSession, selfUser: selfUser)
+    }
+    
+    func testThatDarkThemePropertySetsValue() {
+        // given
+        let factory = settingsPropertyFactory
         
+        let property = factory.property(SettingsPropertyName.darkMode)
+        // when & then
+        try! saveAndCheck(property, value: 2)
+    }
+    
+
+    func testThatSoundLevelPropertySetsValue() {
+        // given
+        let factory = settingsPropertyFactory
+
         let property = factory.property(SettingsPropertyName.soundAlerts)
         // when & then
         try! self.saveAndCheck(property, value: 1)
@@ -178,11 +196,11 @@ class SettingsPropertyTests: XCTestCase {
         // given
         let settings = Settings()
         let account = Account(userName: "bob", userIdentifier: UUID())
-        let key = "IntegerKey"
+        let key = SettingKey.blackListDownloadInterval
         XCTAssertNil(settings.value(for: key, in: account) as Int?)
         
         // when
-        settings.setValue(42, for: key, in: account)
+        settings.setValue(42, settingKey: key, in: account)
         
         // then
         let result: Int? = settings.value(for: key, in: account)
@@ -193,11 +211,11 @@ class SettingsPropertyTests: XCTestCase {
         // given
         let settings = Settings()
         let account = Account(userName: "bob", userIdentifier: UUID())
-        let key = "BooleanKey"
+        let key = SettingKey.disableMarkdown
         XCTAssertNil(settings.value(for: key, in: account) as Bool?)
         
         // when
-        settings.setValue(true, for: key, in: account)
+        settings.setValue(true, settingKey: key, in: account)
         
         // then
         let result: Bool? = settings.value(for: key, in: account)
@@ -208,12 +226,14 @@ class SettingsPropertyTests: XCTestCase {
         // given
         let settings = Settings()
         let account = Account(userName: "bob", userIdentifier: UUID())
-        let key = "IntegerKey"
-        settings.defaults.setValue(42, forKey: key)
+        let key = SettingKey.blackListDownloadInterval
+        let value: Int = 42
+        settings[key] = value
         
         // when & then
         let result: Int? = settings.value(for: key, in: account)
-        XCTAssertNil(settings.defaults.object(forKey: key))
-        XCTAssertEqual(result, 42)
+        let settingVal: Int? = settings[key]
+        XCTAssertNil(settingVal)
+        XCTAssertEqual(result, value)
     }
 }

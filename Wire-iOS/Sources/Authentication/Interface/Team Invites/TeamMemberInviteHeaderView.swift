@@ -69,11 +69,11 @@ final class TeamMemberInviteHeaderView: UIView {
     }
     
     func updateHeadlineLabelFont(forWidth width: CGFloat) {
-        titleLabel.font = width > 320 ? AuthenticationStepController.headlineFont : AuthenticationStepController.headlineSmallFont
+        titleLabel.font = width > CGFloat.iPhone4Inch.width ? AuthenticationStepController.headlineFont : AuthenticationStepController.headlineSmallFont
     }
     
     private func createConstraints() {
-        [stackView, bottomSpacerView].forEach(){ $0.translatesAutoresizingMaskIntoConstraints = false }
+        [stackView, bottomSpacerView].prepareForLayout()
         stackView.fitInSuperview()
 
         bottomSpacerViewHeightConstraint = bottomSpacerView.heightAnchor.constraint(equalToConstant: 0)

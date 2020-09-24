@@ -18,6 +18,9 @@
 
 
 import Photos
+import WireSystem
+import WireUtilities
+import UIKit
 
 protocol PhotoLibraryProtocol {
     func performChanges(_ changeBlock: @escaping () -> Swift.Void, completionHandler: ((Bool, Error?) -> Swift.Void)?)
@@ -114,7 +117,7 @@ final class SavableImage: NSObject {
         }
     }
 
-    // Has to be called from inside a `photoLibrary.performChanges` block
+    // Has to be called from inside a `photoLibrary.perform` block
     private func saveImage(using source: Source) {
         switch source {
         case .gif(let url):

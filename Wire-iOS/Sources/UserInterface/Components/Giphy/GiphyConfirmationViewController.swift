@@ -19,6 +19,8 @@
 import UIKit
 import Cartography
 import Ziphy
+import FLAnimatedImage
+import WireCommonComponents
 
 protocol GiphyConfirmationViewControllerDelegate {
     

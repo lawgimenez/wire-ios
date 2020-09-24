@@ -17,12 +17,20 @@
 //
 
 import UIKit
+import WireDataModel
 
 final class ConversationMessageToolboxCell: UIView, ConversationMessageCell, MessageToolboxViewDelegate {
 
-    struct Configuration {
+    struct Configuration: Equatable {
         let message: ZMConversationMessage
         let selected: Bool
+        let deliveryState: ZMDeliveryState
+
+        static func == (lhs: ConversationMessageToolboxCell.Configuration, rhs: ConversationMessageToolboxCell.Configuration) -> Bool {
+            return lhs.deliveryState == rhs.deliveryState &&
+                   lhs.message == rhs.message &&
+                   lhs.selected == rhs.selected
+        }
     }
 
     let toolboxView = MessageToolboxView()
@@ -53,11 +61,11 @@ final class ConversationMessageToolboxCell: UIView, ConversationMessageCell, Mes
         toolboxView.translatesAutoresizingMaskIntoConstraints = false
         toolboxView.fitInSuperview()
     }
-    
+
     func willDisplay() {
         toolboxView.startCountdownTimer()
     }
-    
+
     func didEndDisplaying() {
         toolboxView.stopCountdownTimer()
     }
@@ -71,16 +79,16 @@ final class ConversationMessageToolboxCell: UIView, ConversationMessageCell, Mes
         delegate?.conversationMessageWantsToOpenMessageDetails(self, messageDetailsViewController: detailsViewController)
     }
 
-    private func perform(action: MessageAction) {
-        delegate?.perform(action: action, for: message, view: selectionView ?? self)
+    private func perform(action: MessageAction, sender: UIView? = nil) {
+        delegate?.perform(action: action, for: message, view: selectionView ?? sender ?? self)
     }
 
     func messageToolboxViewDidRequestLike(_ messageToolboxView: MessageToolboxView) {
         perform(action: .like)
     }
 
-    func messageToolboxViewDidSelectDelete(_ messageToolboxView: MessageToolboxView) {
-        perform(action: .delete)
+    func messageToolboxViewDidSelectDelete(_ sender: UIView?) {
+        perform(action: .delete, sender: sender)
     }
 
     func messageToolboxViewDidSelectResend(_ messageToolboxView: MessageToolboxView) {
@@ -89,12 +97,12 @@ final class ConversationMessageToolboxCell: UIView, ConversationMessageCell, Mes
 
 }
 
-class ConversationMessageToolboxCellDescription: ConversationMessageCellDescription {
+final class ConversationMessageToolboxCellDescription: ConversationMessageCellDescription {
     typealias View = ConversationMessageToolboxCell
     let configuration: View.Configuration
 
     var message: ZMConversationMessage?
-    weak var delegate: ConversationMessageCellDelegate? 
+    weak var delegate: ConversationMessageCellDelegate?
     weak var actionController: ConversationMessageActionController?
 
     var showEphemeralTimer: Bool = false
@@ -108,7 +116,7 @@ class ConversationMessageToolboxCellDescription: ConversationMessageCellDescript
 
     init(message: ZMConversationMessage, selected: Bool) {
         self.message = message
-        self.configuration = View.Configuration(message: message, selected: selected)
+        self.configuration = View.Configuration(message: message, selected: selected, deliveryState: message.deliveryState)
     }
-    
+
 }

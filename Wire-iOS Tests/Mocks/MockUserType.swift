@@ -118,6 +118,8 @@ class MockUserType: NSObject, UserType, Decodable {
         return teamIdentifier != nil
     }
 
+    var hasDigitalSignatureEnabled: Bool = false
+    
     var teamName: String? = nil
 
     var teamRole: TeamRole = .none
@@ -153,8 +155,6 @@ class MockUserType: NSObject, UserType, Decodable {
     var isAccountDeleted: Bool = false
 
     var isUnderLegalHold: Bool = false
-
-    var shouldHideAvailability: Bool = false
 
     var needsRichProfileUpdate: Bool = false
 
@@ -257,8 +257,27 @@ class MockUserType: NSObject, UserType, Decodable {
         }
     }
 
+    // MARK: - Refresh requests
+
+    var refreshDataCount = 0
+    var refreshRichProfileCount = 0
+    var refreshMembershipCount = 0
+    var refreshTeamDataCount = 0
+
     func refreshData() {
-        // No op
+        refreshDataCount += 1
+    }
+
+    func refreshRichProfile() {
+        refreshRichProfileCount += 1
+    }
+
+    func refreshMembership() {
+        refreshMembershipCount += 1
+    }
+
+    func refreshTeamData() {
+        refreshTeamDataCount += 1
     }
 
 }

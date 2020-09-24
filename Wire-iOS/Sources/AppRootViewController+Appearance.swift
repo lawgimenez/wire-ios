@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,11 +17,11 @@
 //
 
 import Foundation
+import UIKit
 
 extension AppRootViewController {
     
-    @objc
-    public static func configureAppearance() {
+    static func configureAppearance() {
         let navigationBarTitleBaselineOffset: CGFloat = 2.5
         
         let attributes: [NSAttributedString.Key : Any] = [.font: UIFont.systemFont(ofSize: 11, weight: .semibold), .baselineOffset: navigationBarTitleBaselineOffset]

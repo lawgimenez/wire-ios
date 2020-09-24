@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,8 +17,9 @@
 //
 
 import Foundation
+import UIKit
 
-final class NotificationWindow: PassthroughWindow {
+final class NotificationWindow: UIWindow {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -27,9 +28,11 @@ final class NotificationWindow: PassthroughWindow {
         accessibilityIdentifier = "ZClientNotificationWindow"
         accessibilityViewIsModal = true
         windowLevel = UIWindowLevelNotification // status bar level - 1
+        isOpaque = false
     }
     
-    @available(*, unavailable) required init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

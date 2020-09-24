@@ -16,6 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
+import UIKit
+import WireSyncEngine
+import WireCommonComponents
+
 extension UIViewController {
 
     func showAlert(for error: LocalizedError, handler: AlertActionHandler? = nil) {
@@ -24,12 +28,12 @@ extension UIViewController {
                                                     okActionHandler: handler), animated: true)
 
     }
-    
+
     func showAlert(for error: Error, handler: AlertActionHandler? = nil) {
         let nsError: NSError = error as NSError
         var message = ""
 
-        if nsError.domain == ZMManagedObjectValidationErrorCodeDomain,
+        if nsError.domain == ZMObjectValidationErrorDomain,
             let code: ZMManagedObjectValidationErrorCode = ZMManagedObjectValidationErrorCode(rawValue: nsError.code) {
             switch code {
             case .tooLong:
@@ -50,6 +54,8 @@ extension UIViewController {
                 message = ""
             case .needsCredentials:
                 message = "error.user.needs_credentials".localized
+            case .domainBlocked:
+                message = "error.user.domain_blocked".localized
             case .invalidCredentials:
                 message = "error.user.invalid_credentials".localized
             case .accountIsPendingActivation:

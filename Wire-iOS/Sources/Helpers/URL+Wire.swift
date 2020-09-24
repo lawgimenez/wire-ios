@@ -17,10 +17,12 @@
 //
 
 import Foundation
+import WireSystem
+import WireTransport
 
 private let zmLog = ZMSLog(tag: "URL")
 
-@objc enum TeamSource: Int {
+enum TeamSource: Int {
     case onboarding, settings
     
     var parameterValue: String {
@@ -37,30 +39,13 @@ struct WireUrl: Codable {
     let randomProfilePictureSource: URL
 
     static var shared: WireUrl! = {
-        guard let filePath = Bundle.main.url(forResource: "url", withExtension: "json") else {
-            zmLog.error("Failed to get URL from bundle")
-            return nil
-        }
-
-        return WireUrl(filePath: filePath)
+        return WireUrl(filePath: Bundle.fileURL(for: "url", with: "json")!)
     }()
 
     private init?(filePath: URL) {
-
-        let data: Data
         do {
-            data = try Data(contentsOf: filePath)
+            self = try filePath.decode(WireUrl.self)
         } catch {
-            zmLog.error("Failed to load URL at path: \(filePath), error: \(error)")
-            return nil
-        }
-
-        let decoder = JSONDecoder()
-
-        do {
-            self = try decoder.decode(WireUrl.self, from: data)
-        } catch {
-            zmLog.error("Failed to parse JSON at path: \(filePath), error: \(error)")
             return nil
         }
     }
@@ -163,7 +148,7 @@ extension URL {
     static var wr_askSupport: URL {
         return wr_support.appendingPathComponent("hc/requests/new")
     }
-
+    
     static var wr_reportAbuse: URL {
         return BackendEnvironment.websiteLink(path: "support/misuse")
     }
@@ -176,22 +161,15 @@ extension URL {
         return BackendEnvironment.websiteLink(path: "privacy/error-2")
     }
 
-    static var wr_createTeam: URL {
-        return BackendEnvironment.websiteLink(path: "create-team?pk_campaign=client&pk_kwd=ios")
-    }
-
     static var wr_createTeamFeatures: URL {
         return BackendEnvironment.websiteLink(path: "teams/learnmore")
-    }
-
-    static var wr_manageTeam: URL {
-        return BackendEnvironment.teamsLink(path: "login?pk_campaign=client&pk_kwd=ios")
     }
 
     static var wr_emailInUseLearnMore: URL {
         return BackendEnvironment.websiteLink(path: "support/email-in-use")
     }
 
+    
 
     static func wr_termsOfServicesURL(forTeamAccount isTeamAccount: Bool) -> URL {
         if isTeamAccount {
@@ -205,7 +183,7 @@ extension URL {
 
 extension NSURL {
 
-    @objc static var wr_fingerprintLearnMoreURL: NSURL {
+    static var wr_fingerprintLearnMoreURL: NSURL {
         return URL.wr_fingerprintLearnMore as NSURL
     }
 

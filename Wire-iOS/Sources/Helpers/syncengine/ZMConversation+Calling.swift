@@ -17,7 +17,9 @@
 //
 
 import Foundation
-
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
 extension ZMConversation {
     
@@ -26,7 +28,8 @@ extension ZMConversation {
     }
     
     var firstCallingParticipantOtherThanSelf : ZMUser? {
-      return (voiceChannel?.participants.first { !ZMUser.selfUser().isEqual($0.user) })?.user
+        let participant = voiceChannel?.participants.first { !$0.user.isSelfUser }
+        return participant?.user
     }
     
     func startAudioCall() {

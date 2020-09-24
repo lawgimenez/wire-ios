@@ -17,15 +17,16 @@
 //
 
 import Foundation
+import WireCommonComponents
 @testable import Wire
 
 extension MockConversation {
 
-    @objc var destructionEnabled: Bool {
+    var destructionEnabled: Bool {
         return false
     }
 
-    @objc var timeoutImage: UIImage? {
+    var timeoutImage: UIImage? {
         return StyleKitIcon.timeoutWeek.makeImage(size: 64, color: .accent())
     }
 

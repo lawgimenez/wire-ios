@@ -17,8 +17,54 @@
 //
 
 import Foundation
+import UIKit
+import WireCommonComponents
+
+extension Float {
+    enum ConversationButtonMessageCell {
+        static let verticalInset: Float = 8
+    }
+}
+
+extension StyleKitIcon.Size {
+    enum CreatePasscode {
+        static let iconSize: StyleKitIcon.Size = .custom(11)
+        static let errorIconSize: StyleKitIcon.Size = .custom(13)
+    }
+}
 
 extension CGFloat {
+    enum iPhone4Inch {
+        static let width: CGFloat = 320
+        static let height: CGFloat = 568
+    }
+
+    enum iPhone4_7Inch {
+        static let width: CGFloat = 375
+        static let height: CGFloat = 667
+    }
+
+    enum WipeCompletion {
+        static let buttonHeight: CGFloat = 48
+    }
+
+    enum PasscodeUnlock {
+        static let textFieldHeight: CGFloat = 40
+        static let buttonHeight: CGFloat = 40
+        static let buttonPadding: CGFloat = 24
+        static let textFieldPadding: CGFloat = 19
+    }
+
+    enum AccessoryTextField {
+        static let horizonalInset: CGFloat = 16
+    }
+
+    enum SpinnerButton {
+        static let contentInset: CGFloat = 16
+        static let iconSize: CGFloat = StyleKitIcon.Size.tiny.rawValue
+        static let spinnerBackgroundAlpha: CGFloat = 0.93
+    }
+
     enum IconCell {
         static let IconWidth: CGFloat = 64
         static let IconSpacing: CGFloat = 16
@@ -27,7 +73,7 @@ extension CGFloat {
     enum StartUI {
         static public let CellHeight: CGFloat = 56
     }
-    
+
     enum SplitView {
         static public let LeftViewWidth: CGFloat = 336
 
@@ -47,7 +93,7 @@ extension CGFloat {
 
         static let barHeight: CGFloat = 44
     }
-    
+
     enum ConversationListSectionHeader {
         static let height: CGFloat = 51
     }
@@ -64,4 +110,3 @@ extension CGFloat {
         static let imageInset: CGFloat = 2
     }
 }
-

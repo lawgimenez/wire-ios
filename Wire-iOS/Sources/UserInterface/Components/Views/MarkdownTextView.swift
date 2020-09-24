@@ -19,6 +19,9 @@
 import Foundation
 import MobileCoreServices
 import Down
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
 extension Notification.Name {
     static let MarkdownTextViewDidChangeActiveMarkdown = Notification.Name("MarkdownTextViewDidChangeActiveMarkdown")
@@ -57,6 +60,19 @@ final class MarkdownTextView: NextResponderTextView {
         setText(draft.text, withMentions: draft.mentions)
     }
 
+    override func canPerformAction(_ action: Selector,
+                                   withSender sender: Any?) -> Bool {
+        switch action {
+        case #selector(UIResponderStandardEditActions.paste(_:)),
+             #selector(UIResponderStandardEditActions.cut(_:)),
+             #selector(UIResponderStandardEditActions.copy(_:)):
+            guard SecurityFlags.clipboard.isEnabled else { return false }
+            fallthrough
+        default:
+            return super.canPerformAction(action, withSender: sender)
+        }
+    }
+    
     func setText(_ newText: String, withMentions mentions: [Mention]) {
         let mutable = NSMutableAttributedString(string: newText, attributes: currentAttributes)
 
@@ -614,7 +630,7 @@ extension MarkdownTextView: MarkdownBarViewDelegate {
 
 extension DownStyle {
     /// The style used within the conversation message cells.
-    @objc static var normal: DownStyle = {
+    static var normal: DownStyle = {
         let style = DownStyle()
         style.baseFont = FontSpec(.normal, .light).font!
         style.baseFontColor = UIColor.from(scheme: .textForeground)
@@ -625,7 +641,7 @@ extension DownStyle {
     }()
     
     /// The style used within the input bar.
-    @objc static var compact: DownStyle = {
+    static var compact: DownStyle = {
         let style = DownStyle()
         style.baseFont = FontSpec(.normal, .light).font!
         style.baseFontColor = UIColor.from(scheme: .textForeground)
@@ -641,7 +657,7 @@ extension DownStyle {
     }()
     
     /// The style used for the reply compose preview.
-    @objc static var preview: DownStyle = {
+    static var preview: DownStyle = {
         let style = DownStyle()
         style.baseFont = UIFont.systemFont(ofSize: 14, contentSizeCategory: .medium, weight: .light)
         style.baseFontColor = UIColor.from(scheme: .textForeground)

@@ -17,38 +17,11 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 extension ZMConversation {
-    
-    @objc
-    func addParticipantsOrCreateConversation(_ participants: Set<ZMUser>) -> ZMConversation? {
-        guard !participants.isEmpty,
-              let userSession = ZMUserSession.shared() else {
-            return self
-        }
-
-        switch conversationType {
-        case .group:
-            addOrShowError(participants: Array(participants))
-            return self
-        case .oneOnOne where participants.count > 1 || (participants.count == 1 && !(connectedUser == participants.first)):
-            
-            var listOfPeople = Array(participants)
-            
-            if let connectedUser = connectedUser {
-                listOfPeople.append(connectedUser)
-            }
-            
-            return ZMConversation.insertGroupConversation(session: userSession,
-                                                          participants: listOfPeople,
-                                                          team: ZMUser.selfUser().team)
-        default:
-            return self
-        }
-    }
 
     ///TODO: move to DM
-    @objc
     var firstActiveParticipantOtherThanSelf: ZMUser? {
         guard let selfUser = ZMUser.selfUser() else { return localParticipants.first }
         

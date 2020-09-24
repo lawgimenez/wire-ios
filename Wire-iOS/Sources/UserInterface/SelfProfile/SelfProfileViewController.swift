@@ -17,6 +17,9 @@
 //
 
 import UIKit
+import WireSyncEngine
+import WireCommonComponents
+import WireUtilities
 
 /**
  * The first page of the user settings.
@@ -37,6 +40,9 @@ final class SelfProfileViewController: UIViewController {
     private let accountSelectorController = AccountSelectorController()
     private let profileContainerView = UIView()
     private let profileHeaderViewController: ProfileHeaderViewController
+
+    // MARK: - AppLock
+    private var callback: ResultHandler?
 
     // MARK: - Configuration
 
@@ -60,11 +66,14 @@ final class SelfProfileViewController: UIViewController {
      * - parameter userRightInterfaceType: The type of object to determine the user permissions.
      */
 
-    init(selfUser: SettingsSelfUser, userRightInterfaceType: UserRightInterface.Type = UserRight.self) {
+    init(selfUser: SettingsSelfUser,
+         userRightInterfaceType: UserRightInterface.Type = UserRight.self,
+         userSession: UserSessionSwiftInterface? = ZMUserSession.shared()) {
+        
         self.selfUser = selfUser
 
         // Create the settings hierarchy
-        let settingsPropertyFactory = SettingsPropertyFactory(userSession: SessionManager.shared?.activeUserSession, selfUser: selfUser)
+        let settingsPropertyFactory = SettingsPropertyFactory(userSession: userSession, selfUser: selfUser)
 		let settingsCellDescriptorFactory = SettingsCellDescriptorFactory(settingsPropertyFactory: settingsPropertyFactory, userRightInterfaceType: userRightInterfaceType)
 		let rootGroup = settingsCellDescriptorFactory.rootGroup()
         settingsController = rootGroup.generateViewController()! as! SettingsTableViewController
@@ -76,6 +85,12 @@ final class SelfProfileViewController: UIViewController {
 
         super.init(nibName: nil, bundle: nil)
         settingsPropertyFactory.delegate = self
+
+        if selfUser.isTeamMember {
+            userSession?.enqueue {
+                selfUser.refreshTeamData()
+            }
+        }
     }
 
     @available(*, unavailable)
@@ -175,13 +190,67 @@ final class SelfProfileViewController: UIViewController {
 // MARK: - SettingsPropertyFactoryDelegate
 
 extension SelfProfileViewController: SettingsPropertyFactoryDelegate {
+    private var topViewController: SpinnerCapableViewController? {
+        navigationController?.topViewController as? SpinnerCapableViewController
+    }
 
     func asyncMethodDidStart(_ settingsPropertyFactory: SettingsPropertyFactory) {
-        self.navigationController?.topViewController?.showLoadingView = true
+        // topViewController is SettingsTableViewController
+        topViewController?.isLoadingViewVisible = true
     }
 
     func asyncMethodDidComplete(_ settingsPropertyFactory: SettingsPropertyFactory) {
-        self.navigationController?.topViewController?.showLoadingView = false
+        topViewController?.isLoadingViewVisible = false
     }
 
+    
+    /// Create or delete custom passcode when appLock option did change
+    /// If custom passcode is not enabled, no action is taken
+    ///
+    /// - Parameters:
+    ///   - settingsPropertyFactory: caller of this delegate method
+    ///   - newValue: new value of app lock option
+    ///   - callback: callback for PasscodeSetupViewController
+    func appLockOptionDidChange(_ settingsPropertyFactory: SettingsPropertyFactory,
+                                newValue: Bool,
+                                callback: @escaping ResultHandler) {
+        guard AppLock.rules.useCustomCodeInsteadOfAccountPassword else {
+            callback(newValue)
+            return
+        }
+        
+        guard newValue else {
+            Keychain.deletePasscode()
+            callback(newValue)
+            
+            return
+        }
+        
+        self.callback = callback
+        let passcodeSetupViewController = PasscodeSetupViewController(callback: callback, variant: .dark)
+        passcodeSetupViewController.passcodeSetupViewControllerDelegate = self
+        
+        let keyboardAvoidingViewController = KeyboardAvoidingViewController(viewController: passcodeSetupViewController)
+        
+        let wrappedViewController = keyboardAvoidingViewController.wrapInNavigationController(navigationBarClass: DarkBarItemTransparentNavigationBar.self)
+        
+        let closeItem = passcodeSetupViewController.closeItem
+
+        keyboardAvoidingViewController.navigationItem.leftBarButtonItem = closeItem
+                    
+        wrappedViewController.presentationController?.delegate = passcodeSetupViewController
+        
+        UIApplication.shared.topmostViewController()?.present(wrappedViewController, animated: true)
+    }
+}
+
+extension SelfProfileViewController: PasscodeSetupViewControllerDelegate {
+    func passcodeSetupControllerDidFinish(_ viewController: PasscodeSetupViewController) {
+        //no-op
+    }
+    
+    func passcodeSetupControllerWasDismissed(_ viewController: PasscodeSetupViewController) {
+        // refresh options applock switch
+        (topViewController as? SettingsTableViewController)?.refreshData()
+    }
 }

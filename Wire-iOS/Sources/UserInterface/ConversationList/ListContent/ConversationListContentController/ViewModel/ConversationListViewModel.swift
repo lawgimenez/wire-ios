@@ -18,6 +18,10 @@
 
 import Foundation
 import DifferenceKit
+import WireSystem
+import WireDataModel
+import WireSyncEngine
+import WireRequestStrategy
 
 final class ConversationListViewModel: NSObject {
     
@@ -210,20 +214,13 @@ final class ConversationListViewModel: NSObject {
         func hash(into hasher: inout Hasher) {
             hasher.combine(isFavorite)
             
-            if let hashable = item as? AnyHashable {
-                hasher.combine(hashable)
-            }
+            let hashableItem: NSObject = item            
+            hasher.combine(hashableItem)
         }
 
         static func == (lhs: SectionItem, rhs: SectionItem) -> Bool {
-            if lhs.isFavorite != rhs.isFavorite { return false }
-            
-            if let lhsItem = lhs.item as? AnyHashable,
-               let rhsItem = rhs.item as? AnyHashable {
-                return lhsItem == rhsItem
-            } else {
-                return false
-            }
+            return lhs.isFavorite == rhs.isFavorite &&
+                   lhs.item == rhs.item
         }
     }
 
@@ -277,7 +274,7 @@ final class ConversationListViewModel: NSObject {
     }
 
     private func setupObservers() {
-        conversationDirectoryToken = userSession?.conversationDirectory?.addObserver(self)
+        conversationDirectoryToken = userSession?.conversationDirectory.addObserver(self)
     }
 
     func sectionHeaderTitle(sectionIndex: Int) -> String? {
@@ -562,7 +559,7 @@ final class ConversationListViewModel: NSObject {
         if indexPath(for: itemToSelect) == nil {
             guard let conversation = itemToSelect as? ZMConversation else { return false }
 
-            ZMUserSession.shared()?.enqueueChanges({
+            ZMUserSession.shared()?.enqueue({
                 conversation.isArchived = false
             }, completionHandler: {
                 self.internalSelect(itemToSelect: itemToSelect)

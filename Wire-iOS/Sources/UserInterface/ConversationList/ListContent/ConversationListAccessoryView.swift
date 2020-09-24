@@ -17,6 +17,7 @@
 //
 
 import UIKit
+import WireCommonComponents
 
 final class ConversationListAccessoryView: UIView {
     var icon: ConversationStatusIcon? = nil {
@@ -31,6 +32,11 @@ final class ConversationListAccessoryView: UIView {
         }
     }
     
+    var activeMediaPlayer: MediaPlayer? {
+        let mediaManager = mediaPlaybackManager ?? AppDelegate.shared.mediaPlaybackManager
+        return mediaManager?.activeMediaPlayer
+    }
+    
     let mediaPlaybackManager: MediaPlaybackManager?
     
     let badgeView = RoundedBadge(view: UIView())
@@ -43,7 +49,7 @@ final class ConversationListAccessoryView: UIView {
     let defaultViewWidth: CGFloat = 28
     let activeCallWidth: CGFloat = 20
     
-    init(mediaPlaybackManager: MediaPlaybackManager?) {
+    init(mediaPlaybackManager: MediaPlaybackManager? = nil) {
         self.mediaPlaybackManager = mediaPlaybackManager
         super.init(frame: .zero)
         
@@ -129,7 +135,7 @@ final class ConversationListAccessoryView: UIView {
             accessibilityValue = "conversation_list.voiceover.status.missed_call".localized
             return iconView
         case .playingMedia:
-            if let mediaPlayer = self.mediaPlaybackManager?.activeMediaPlayer, mediaPlayer.state == .playing {
+            if let mediaPlayer = activeMediaPlayer, mediaPlayer.state == .playing {
                 iconView.setIcon(.pause, size: iconSize, color: .white)
                 accessibilityValue = "conversation_list.voiceover.status.pause_media".localized
             }

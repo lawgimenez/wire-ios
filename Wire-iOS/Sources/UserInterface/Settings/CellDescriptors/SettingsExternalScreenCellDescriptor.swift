@@ -18,6 +18,8 @@
 
 
 import Foundation
+import UIKit
+import WireCommonComponents
 
 enum PresentationStyle: Int {
     case modal
@@ -100,7 +102,6 @@ class SettingsExternalScreenCellDescriptor: SettingsExternalScreenCellDescriptor
 
             controllerToShow.modalPresentationCapturesStatusBarAppearance = true
             self.viewController?.present(controllerToShow, animated: true, completion: .none)
-            
         case .navigation:
             viewController?.navigationController?.pushViewController(controllerToShow, animated: true)
         }

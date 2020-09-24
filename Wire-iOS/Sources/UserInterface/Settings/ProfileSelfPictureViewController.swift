@@ -19,6 +19,8 @@
 import Foundation
 import Photos
 import MobileCoreServices
+import UIKit
+import WireSyncEngine
 
 final class ProfileSelfPictureViewController: UIViewController {
     var selfUserImageView: UIImageView = UIImageView()
@@ -59,8 +61,8 @@ final class ProfileSelfPictureViewController: UIViewController {
               let jpegData: Data = selfImageData.isJPEG ? selfImageData : UIImage(data: selfImageData)?.jpegData(compressionQuality: 1.0) else { return }
         
         
-        ZMUserSession.shared()?.enqueueChanges({
-            ZMUserSession.shared()?.profileUpdate.updateImage(imageData: jpegData)
+        ZMUserSession.shared()?.enqueue({
+            ZMUserSession.shared()?.userProfileImage?.updateImage(imageData: jpegData)
         })
     }
     
@@ -130,6 +132,7 @@ final class ProfileSelfPictureViewController: UIViewController {
         let length: CGFloat = 32
         let libraryButtonSize = CGSize(width: length, height: length)
         
+        libraryButton.isHidden = !SecurityFlags.cameraRoll.isEnabled
         libraryButton.translatesAutoresizingMaskIntoConstraints = false
 
         libraryButton.accessibilityIdentifier = "CameraLibraryButton"
@@ -262,15 +265,18 @@ final class ProfileSelfPictureViewController: UIViewController {
 extension ProfileSelfPictureViewController: ZMUserObserver {
     
     func userDidChange(_ changeInfo: UserChangeInfo) {
-        guard changeInfo.imageMediumDataChanged,
-            let userSession = ZMUserSession.shared(),
-            let profileImageUser = changeInfo.user as? ProfileImageFetchable else { return }
+        guard
+            changeInfo.imageMediumDataChanged,
+            let userSession = ZMUserSession.shared()
+        else {
+            return
+        }
         
-        profileImageUser.fetchProfileImage(session: userSession,
-                                           cache: defaultUserImageCache,
-                                           sizeLimit: nil,
-                                           desaturate: false) { (image, _) in
-                                            self.selfUserImageView.image = image
+        changeInfo.user.fetchProfileImage(session: userSession,
+                                          imageCache: UIImage.defaultUserImageCache,
+                                          sizeLimit: nil,
+                                          isDesaturated: false) { (image, _) in
+            self.selfUserImageView.image = image
         }
     }
 }

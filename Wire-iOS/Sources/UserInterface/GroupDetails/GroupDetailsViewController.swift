@@ -18,6 +18,7 @@
 
 import UIKit
 import Cartography
+import WireSyncEngine
 
 final class GroupDetailsViewController: UIViewController, ZMConversationObserver, GroupDetailsFooterViewDelegate {
     
@@ -43,8 +44,7 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
         return ColorScheme.default.statusBarStyle
     }
 
-    @objc
-    public init(conversation: ZMConversation) {
+    init(conversation: ZMConversation) {
         self.conversation = conversation
         collectionViewController = SectionCollectionViewController()
         
@@ -168,17 +168,12 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
             sections.append(optionsSectionController)
         }
         
-        if let selfUser = ZMUser.selfUser(),
-            conversation.teamRemoteIdentifier != nil,
-            selfUser.canModifyReadReceiptSettings(in: conversation)
-        {
+        if conversation.teamRemoteIdentifier != nil && SelfUser.current.canModifyReadReceiptSettings(in: conversation) {
             let receiptOptionsSectionController = ReceiptOptionsSectionController(conversation: conversation,
                                                                                   syncCompleted: didCompleteInitialSync,
                                                                                   collectionView: self.collectionViewController.collectionView!,
                                                                                   presentingViewController: self)
             sections.append(receiptOptionsSectionController)
-           
-            
         }
         
         // MARK: services sections
@@ -210,7 +205,8 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
         }
     }
     
-    func footerView(_ view: GroupDetailsFooterView, shouldPerformAction action: GroupDetailsFooterView.Action) {
+    func footerView(_ view: GroupDetailsFooterView,
+                    shouldPerformAction action: GroupDetailsFooterView.Action) {
         switch action {
         case .invite:
             let addParticipantsViewController = AddParticipantsViewController(conversation: conversation)
@@ -218,12 +214,13 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
             navigationController.modalPresentationStyle = .currentContext
             present(navigationController, animated: true)
         case .more:
-            actionController = ConversationActionController(conversation: conversation, target: self)
+            actionController = ConversationActionController(conversation: conversation,
+                                                            target: self,
+                                                            sourceView: view)
             actionController?.presentMenu(from: view, context: .details)
         }
     }
     
-    @objc(presentParticipantsDetailsWithUsers:selectedUsers:animated:)
     func presentParticipantsDetails(with users: [UserType], selectedUsers: [UserType], animated: Bool) {
         let detailsViewController = GroupParticipantsDetailViewController(
             selectedParticipants: selectedUsers,
@@ -264,7 +261,7 @@ extension GroupDetailsViewController: ProfileViewControllerDelegate {
         }
     }
     
-    func profileViewController(_ controller: ProfileViewController?, wantsToCreateConversationWithName name: String?, users: Set<ZMUser>) {
+    func profileViewController(_ controller: ProfileViewController?, wantsToCreateConversationWithName name: String?, users: UserSet) {
         //no-op
     }
 }
@@ -286,9 +283,8 @@ extension GroupDetailsViewController: GroupDetailsSectionControllerDelegate, Gro
         presentParticipantsDetails(with: users, selectedUsers: [], animated: true)
     }
     
-    @objc(presentGuestOptionsAnimated:)
     func presentGuestOptions(animated: Bool) {
-        let menu = ConversationOptionsViewController(conversation: conversation, userSession: .shared()!)
+        let menu = ConversationOptionsViewController(conversation: conversation, userSession: ZMUserSession.shared()!)
         navigationController?.pushViewController(menu, animated: animated)
     }
 
@@ -304,14 +300,4 @@ extension GroupDetailsViewController: GroupDetailsSectionControllerDelegate, Gro
         navigationController?.pushViewController(menu, animated: animated)
     }
     
-}
-
-extension Array where Element: UserType {
-    func addSelfUserAndSorted() -> [UserType] {
-        var arr: [UserType] = self
-        if let selfUser = ZMUser.selfUser() {
-            arr.append(selfUser)
-        }
-        return arr.sorted { $0.name < $1.name } as! Array<Element>
-    }
 }

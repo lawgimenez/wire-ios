@@ -16,6 +16,7 @@
 //
 
 import Foundation
+import UIKit
 
 extension UIImage {
     func imageScaled(with scaleFactor: CGFloat) -> UIImage? {
@@ -31,9 +32,9 @@ extension UIImage {
         return scaledImage
     }
 
-    func desaturatedImage(with context: CIContext, saturation: NSNumber) -> UIImage? {
+    func desaturatedImage(with context: CIContext, saturation: Double = 0) -> UIImage? {
         guard let filter = CIFilter(name: "CIColorControls"),
-            let cg = self.cgImage
+            let cg = cgImage
             else { return nil }
 
         let i: CIImage = CIImage(cgImage: cg)
@@ -41,13 +42,13 @@ extension UIImage {
         filter.setValue(i, forKey: kCIInputImageKey)
         filter.setValue(saturation, forKey: "InputSaturation")
 
-        guard let result = filter.value(forKey: kCIOutputImageKey) as? CIImage,
+        guard let result = filter.outputImage,
             let cgImage: CGImage = context.createCGImage(result, from: result.extent) else { return nil }
 
         return UIImage(cgImage: cgImage, scale: scale, orientation: imageOrientation)
     }
 
-    func with(insets: UIEdgeInsets, backgroundColor: UIColor?) -> UIImage? {
+    func with(insets: UIEdgeInsets, backgroundColor: UIColor? = nil) -> UIImage? {
         let newSize = CGSize(width: size.width + insets.left + insets.right, height: size.height + insets.top + insets.bottom)
 
         UIGraphicsBeginImageContextWithOptions(newSize, _: 0.0 != 0, _: 0.0)
@@ -62,7 +63,6 @@ extension UIImage {
         return colorImage
     }
 
-    @objc(singlePixelImageWithColor:)
     class func singlePixelImage(with color: UIColor) -> UIImage? {
         let rect = CGRect(x: 0.0, y: 0.0, width: 1.0, height: 1.0)
         UIGraphicsBeginImageContext(rect.size)

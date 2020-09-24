@@ -16,7 +16,7 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 import Foundation
-
+import WireCommonComponents
 
 enum SettingsPropertyValue: Equatable {
     case bool(value: Bool)
@@ -162,7 +162,7 @@ typealias GetAction = (SettingsBlockProperty) -> SettingsPropertyValue
 typealias SetAction = (SettingsBlockProperty, SettingsPropertyValue) throws -> ()
 
 /// Genetic block property
-class SettingsBlockProperty : SettingsProperty {
+final class SettingsBlockProperty : SettingsProperty {
     var enabled: Bool = true
 
     let propertyName : SettingsPropertyName
@@ -171,9 +171,9 @@ class SettingsBlockProperty : SettingsProperty {
     }
     
     func set(newValue: SettingsPropertyValue) throws {
-        try self.setAction(self, newValue)
-        NotificationCenter.default.post(name: Notification.Name(rawValue: self.propertyName.changeNotificationName), object: self)
-        self.trackNewValue()
+        try setAction(self, newValue)
+        NotificationCenter.default.post(name: Notification.Name(rawValue: propertyName.changeNotificationName), object: self)
+        trackNewValue()
     }
     
     func trackNewValue() {

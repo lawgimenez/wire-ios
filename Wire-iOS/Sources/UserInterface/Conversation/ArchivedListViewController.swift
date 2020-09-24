@@ -19,6 +19,7 @@
 
 import UIKit
 import Cartography
+import WireDataModel
 
 // MARK: ArchivedListViewControllerDelegate
 
@@ -184,7 +185,7 @@ extension ArchivedListViewController: ConversationListCellDelegate {
     func conversationListCellOverscrolled(_ cell: ConversationListCell) {
         guard let conversation = cell.conversation else { return }
 
-        actionController = ConversationActionController(conversation: conversation, target: self)
+        actionController = ConversationActionController(conversation: conversation, target: self, sourceView: cell)
         actionController?.presentMenu(from: cell, context: .list)
     }
 

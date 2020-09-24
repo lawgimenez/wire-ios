@@ -27,6 +27,7 @@
 "general.edit" = "Modifier";
 "general.done" = "Terminé";
 "general.confirm" = "OK";
+"general.later" = "Plus tard";
 "general.skip" = "Pas Maintenant";
 "general.accept" = "Accepter";
 "general.decline" = "Non merci";
@@ -229,6 +230,8 @@
 "conversation.voiceover.value.active" = "active";
 "conversation.voiceover.value.disabled" = "désactivée";
 
+"conversation.status.secutity_alert.default" = "Nouvelle alerte de sécurité";
+
 "conversation.status.typing" = "Écrit un message…";
 "conversation.status.typing.group" = "%@ : tape un message…";
 "conversation.status.silenced" = "En sourdine";
@@ -357,10 +360,11 @@
 "image_confirmer.confirm" = "OK";
 "image_confirmer.cancel" = "Annuler";
 "image.add_sketch" = "Ajouter un croquis";
+"image.add_emoji" = "Ajouter un émoji";
 "image.edit_image" = "Modifier l’image";
 
 // Camera access
-"camera_access.denied" = "Wire a besoin d’accéder à l'appareil photo.";
+"camera_access.denied" = "Wire a besoin d’accéder à l'appareil photo";
 "video_call.camera_access.denied" = "Wire ne peut pas utiliser l'appareil photo";
 "camera_access.denied.instruction" = "";
 "camera_access.denied.open_settings" = "Autoriser l'accès dans les paramètres de Wire";
@@ -423,6 +427,12 @@
 "content.message.link_attachment.accessibility_label.youtube" = "Aperçu d'une vidéo YouTube";
 "content.message.link_attachment.accessibility_label.soundcloud_song" = "Aperçu d'une chanson SoundCloud";
 "content.message.link_attachment.accessibility_label.soundcloud_set" = "Aperçu d'une playlist SoundCloud";
+
+// Digital signature
+"digital_signature.alert.error" = "Malheureusement, votre signature numérique a échoué.";
+"digital_signature.alert.error.no_consent_url" = "Malheureusement, le formulaire de signature ne s'est pas ouvert. Veuillez réessayer.";
+"digital_signature.alert.error.no_signature" = "Malheureusement, votre signature numérique a échoué. Veuillez réessayer.";
+"digital_signature.alert.download_necessary" = "Veuillez enregistrer et lire le document avant de le signer.";
 
 // New conversation participants added / removed / started system message
 
@@ -561,6 +571,7 @@
 "content.message.go_to_conversation" = "Montrer";
 "content.message.forward.to" = "Rechercher…";
 "content.message.open" = "Ouvrir";
+"content.message.sign" = "Signer";
 "content.message.copy" = "Copier";
 "content.message.download" = "Télécharger";
 "content.message.details" = "Informations";
@@ -641,9 +652,9 @@
 "voice.alert.call_in_progress.message" = "Vous ne pouvez avoir qu’un seul appel actif à la fois";
 "voice.alert.call_in_progress.confirm" = "OK";
 
-"voice.alert.microphone_warning.title" = "Wire a besoin d’accéder au micro.";
+"voice.alert.microphone_warning.title" = "Wire a besoin d’accéder au micro";
 
-"voice.alert.camera_warning.title" = "Wire a besoin d’accéder à l'appareil photo.";
+"voice.alert.camera_warning.title" = "Wire a besoin d’accéder à l'appareil photo";
 
 "voice.top_overlay.tap_to_return" = "Cliquez pour revenir à l'appel";
 "voice.top_overlay.accessibility_title" = "Appel en cours";
@@ -658,6 +669,7 @@
 "call.status.reconnecting" = "Reconnexion …";
 "call.status.terminating" = "Fin de l'appel…";
 "call.status.constant_bitrate" = "Échantillonnage constant (CBR)";
+"call.status.variable_bitrate" = "Débit variable";
 
 "call.participants.show_all" = "Afficher tout le monde (%@)";
 "call.participants.list.title" = "Participants";
@@ -679,6 +691,9 @@
 "call.alert.ongoing.join.message" = "Un appel est en cours dans une autre conversation.\nJoindre cet appel raccrochera l'autre appel.";
 "call.alert.ongoing.start.button" = "Appeler quand même";
 "call.alert.ongoing.join.button" = "Répondre quand même";
+
+"call.quality.indicator.message" = "Votre relais d'appel n'est pas joignable. Cela peut affecter votre expérience d'appel.";
+"call.quality.indicator.more_info.button.text" = "Plus d'infos";
 
 // Call Actions (accessibility)
 
@@ -984,12 +999,14 @@
 "self.settings.enable_read_receipts.title" = "Envoyer des Accusés de Lecture";
 "self.settings.privacy_section_group.subtitle" = "Si cette option est désactivée, vous ne pourrez pas voir les accusés de lecture d'autres destinataires.\n\nCette option ne s'applique pas aux conversations de groupe.";
 
+"self.settings.encrypt_messages_at_rest.title" = "Chiffrer les messages au repos";
+
 "self.settings.account_picture_group.picture" = "Image";
 "self.settings.account_picture_group.color" = "Couleur";
 
 "self.settings.account_personal_information_group.title" = "Données Personnelles";
 
-"self.settings.account_picture_group.theme" = "Thème sombre";
+"self.settings.account_picture_group.theme" = "Mode";
 
 "self.settings.device_details.fingerprint.subtitle" = "Wire attribue à chaque appareil une empreinte numérique unique. Comparez-les et vérifiez vos appareils et conversations.";
 "self.settings.device_details.reset_session.subtitle" = "Si les empreintes numériques ne correspondent pas, réinitialisez la session afin de générer de nouvelles clés de chiffrement des deux côtés.";
@@ -1021,7 +1038,7 @@
 
 "self.settings.account_section.handle.change.title" = "Nom d'utilisateur";
 "self.settings.account_section.handle.change.save" = "Enregistrer";
-"self.settings.account_section.handle.change.footer" = "Au moins 2 caractères. Uniquement a–z, 0–9 et _.";
+"self.settings.account_section.handle.change.footer" = "Au moins 2 caractères. Uniquement a–z, 0–9 et '.', '-', '_' ";
 "self.settings.account_section.handle.change.footer.unavailable" = "Déjà pris";
 
 "self.settings.account_section.handle.change.failure_alert.title" = "Impossible d'enregistrer le nom d'utilisateur";
@@ -1091,6 +1108,11 @@
 "self.settings.popular_demand.send_button.footer" = "Désactiver pour envoyer en appuyant sur la touche entrée.";
 "self.settings.popular_demand.dark_mode.footer" = "Basculer entre le thème sombre et clair.";
 
+// dark theme
+"dark_theme.option.dark" = "Sombre";
+"dark_theme.option.light" = "Clair";
+"dark_theme.option.system" = "Synchroniser avec les paramètres du système";
+
 // Open in
 "self.settings.external_apps.header" = "Ouvrir avec";
 
@@ -1134,6 +1156,7 @@
 "self.settings.privacy_security.lock_app.subtitle.touch_id" = "Déverrouiller avec Touch ID ou saisie du code.";
 "self.settings.privacy_security.lock_app.subtitle.face_id" = "Déverrouiller avec Face ID ou saisie du code.";
 "self.settings.privacy_security.lock_app.subtitle.none" = "Déverrouiller en saisissant le code.";
+"self.settings.privacy_security.lock_app.subtitle.custom_app_lock_reminder" = "Si oublié, votre code d'accès ne peut pas être récupéré.";
 
 "self.settings.privacy_security.lock_app.description" = "Déverrouiller Wire";
 "self.settings.privacy_security.lock_password.description.unlock" = "Déverrouillez avec votre mot de passe.";
@@ -1155,10 +1178,15 @@
 "self.settings.privacy.clear_history.subtitle" = "Cette opération effacera définitivement le contenu de toutes vos conversations.";
 
 "self.settings.advanced.title" = "Avancé";
+"self.settings.advanced.conference_calling.title" = "Conférences téléphoniques";
+"self.settings.advanced.conference_calling.subtitle" = "Quand cette option est activée, les appels audio et vidéo de conférences sont activés, ce qui permet un plus grand nombre de participants.";
+"self.settings.advanced.conference_calling.toggle" = "Programme bêta";
 "self.settings.advanced.troubleshooting.title" = "Dépannage";
 "self.settings.advanced.troubleshooting.submit_debug.title" = "Rapport d'erreur";
-"self.settings.advanced.debugging_tools.title" = "Debugging Tools";
-"self.settings.advanced.debugging_tools.first_unread_conversation.title" = "Find first unread conversation";
+"self.settings.advanced.debugging_tools.title" = "Outils pour débugger";
+"self.settings.advanced.debugging_tools.first_unread_conversation.title" = "Trouver la conversation la plus récente";
+"self.settings.advanced.debugging_tools.show_user_id.title" = "Afficher mon identifiant";
+"self.settings.advanced.debugging_tools.enter_debug_command.title" = "Entrer la commande de débogage";
 "self.settings.advanced.troubleshooting.submit_debug.subtitle" = "Cette information aide Wire à identifier les problèmes d'appel et à améliorer l'experience globale de l'application.";
 "self.settings.advanced.reset_push_token.title" = "Réinitialiser le jeton des notifications Push";
 "self.settings.advanced.reset_push_token.subtitle" = "Si vous rencontrez des problèmes avec les notifications push, l'assistance de Wire peut vous demander de réinitialiser ce jeton.";
@@ -1229,8 +1257,10 @@
 // Landing screen
 
 "landing.header" = "Wire. Ajoutez votre compte.";
-"landing.welcome_message" = "Bienvenue sur %@";
-"landing.create_account.title" = "Créer un compte";
+"landing.welcome_message" = "Vous souhaitez créer un compte Pro ou Entreprise pour votre entreprise ou votre organisation ?";
+"landing.welcome_submessage" = "Cette action n'est malheureusement pas possible depuis l'application - Après avoir créé votre équipe, vous pourrez vous connecter";
+"landing.create_account.title" = "Créer un compte personnel Wire";
+"landing.create_account.infotitle" = "Avec vos amis et votre famille?";
 "landing.create_account.subtitle" = "Discussions privées avec vos groupes d’amis\U00A0et\U00A0votre\U00A0famille";
 "landing.create_team.title" = "Pro";
 "landing.create_team.subtitle" = "Collaboration sécurisée pour les entreprises, institutions et organisations\U00A0professionnelles";
@@ -1375,7 +1405,7 @@
 
 // SSO – Company Login
 "login.sso.alert.title" = "Connection Entreprise";
-"login.sso.alert.message.sso_and_email" = "Veuillez saisir votre adresse e-mail ou code SSO:";
+"login.sso.alert.message.sso_and_email" = "Veuillez entrer votre email ou votre code SSO. Si votre e-mail correspond à une installation d'entreprise de Wire, cette application se connectera à ce serveur.";
 "login.sso.alert.message.sso_only" = "Veuillez saisir votre code SSO:";
 "login.sso.alert.action" = "Se connecter";
 "login.sso.alert.text_field.placeholder.sso_and_email" = "e-mail ou code d'accès SSO";
@@ -1394,6 +1424,9 @@
 "login.sso.error.alert.domain_not_registered.message" = "Cet e-mail ne peut pas être utilisé pour vous connecter. Veuillez saisir le code SSO pour continuer.";
 "login.sso.error.alert.domain_associated_with_wrong_server.message" = "Cet e-mail est déjà lié à un autre serveur et l'application ne peut être connectée qu'à un seul serveur à la fois. Veuillez vous déconnecter de tous les comptes Wire sur cet appareil et ré-essayez de vous reconnecter.";
 "login.sso.error.alert.unknown.message" = "Veuillez réessayer plus tard.";
+"login.sso.backend_switch.title" = "Redirection...";
+"login.sso.backend_switch.subtitle" = "Vous allez être redirigé vers votre service entreprise dédié.";
+"login.sso.backend_switch.information" = "Ne saisissez vos identifiants que si vous êtes sûr d'être connecté à votre organisation.";
 
 
 // Restore In Progress Loading Titles
@@ -1509,8 +1542,8 @@
 "error.name_and_email" = "Veuillez saisir votre nom complet ainsi qu'une adresse e-mail valide";
 "error.full_name" = "Veuillez saisir votre nom complet";
 "error.email" = "Veuillez saisir une adresse e-mail valide";
-"error.input.too_long" = "Saisie trop longue";
-"error.input.too_short" = "Saisie trop courte";
+"error.input.too_long" = "Veuillez saisir un nom d'utilisateur plus court";
+"error.input.too_short" = "Veuillez saisir un nom d'utilisateur plus long";
 "error.email.invalid" = "Veuillez saisir une adresse e-mail valide";
 "error.phone.invalid" = "Veuillez saisir un numéro de téléphone valide";
 
@@ -1526,6 +1559,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Une erreur s'est produite, veuillez réessayer";
 "error.user.needs_credentials" = "Veuillez vérifier vos informations et réessayez.";
+"error.user.domain_blocked" = "Cet e-mail nécessite une invitation de la part d'une équipe Wire existante. Contactez les administrateurs informatiques de votre organisation pour recevoir une invitation.";
 "error.user.invalid_credentials" = "Veuillez vérifier vos informations et réessayez.";
 "error.user.account_pending_activation" = "Le compte auquel vous tentez d’accéder est en attente d’activation. Merci de vérifier vos informations.";
 "error.user.network_error" = "Il semble y avoir un problème avec votre réseau. Veuillez réessayer ultérieurement.";
@@ -1745,3 +1779,56 @@
 // Account deleted alert
 "account_deleted_session_expired_alert.title" = "Votre session a expiré";
 "account_deleted_session_expired_alert.message" = "L'application n'a pas communiqué avec le serveur depuis une longue période, ou votre session a été invalidée à distance.";
+
+// Button cell state
+"button_message_cell.state.unselected" = "Non sélectionné";
+"button_message_cell.state.selected" = "Sélectionné";
+"button_message_cell.state.confirmed" = "Confirmé";
+
+"button_message_cell.generic_error" = "Votre réponse ne peut pas être envoyée, veuillez réessayer";
+
+// Custom app lock
+
+"passcode.hint_label" = "Code d'accès";
+
+// Custom app lock - create passcode
+"create_passcode.textfield.placeholder" = "";
+"create_passcode.title_label" = "Créer un code d'accès";
+"create_passcode.info_label" = "Il sera utilisé pour déverrouiller Wire. Si vous oubliez ce mot de passe ";
+"create_passcode.info_label.highlighted" = "Ce code d'accès ne peut pas être récupéré.";
+"create_passcode.create_button.title" = "Créer un code d'accès";
+
+// Custom app lock - create passcode validation
+"create_passcode.validation.too_short" = "Minimum de huit caractères";
+"create_passcode.validation.no_lowercase_char" = "Une lettre minuscule";
+"create_passcode.validation.no_uppercase_char" = "Une lettre majuscule";
+"create_passcode.validation.no_number" = "Un nombre";
+"create_passcode.validation.no_special_char" = "Un caractère spécial";
+
+// Custom app lock - unlock
+"unlock.textfield.placeholder" = "Entrez votre code d'accès";
+"unlock.title_label" = "Entrez le code d'accès pour déverrouiller Wire";
+"unlock.wipe_button" = "Accéder en tant que nouvel appareil";
+"unlock.error_label" = "Code d'accès erroné";
+"unlock.submit_button.title" = "déverrouiller";
+
+// Wipe database
+
+"wipe_database.title_label" = "Accéder en tant que nouvel appareil";
+"wipe_database.info_label" = "Les données stockées sur cet appareil ne sont accessibles qu'avec votre code d'accès.\n\nSi vous avez oublié votre code d'accès, vous pouvez effacer la base de données pour vous reconnecter en tant que nouvel appareil.\n\nEn supprimant la base de données, ";
+"wipe_database.info_label.highlighted" = "toutes les données et les messages sur cet appareil pour ce compte seront supprimés définitivement.";
+
+"wipe_database.button.title" = "Je souhaite supprimer la base de données";
+
+// Wipe database alert
+
+"wipe_database.alert.description" = "Confirmer la suppression de la base de données";
+"wipe_database.alert.message" = "Entrez 'Supprimer' pour confirmer la suppression de toutes les données sur cet appareil.";
+"wipe_database.alert.placeholder" = "Entrer 'Supprimer'";
+"wipe_database.alert.confirm" = "Supprimer";
+"wipe_database.alert.confirm_input" = "Supprimer";
+
+// Wipe database completion
+
+"wipe_database_completion.title" = "Base de données supprimée";
+"wipe_database_completion.subtitle" = "Vos données et messages ont été supprimés. Vous pouvez maintenant vous reconnecter comme sur un nouvel appareil.";

@@ -17,36 +17,38 @@
 //
 
 import Foundation
+import WireSystem
+import UIKit
 
 private let zmLog = ZMSLog(tag: "Drag and drop images")
 
 extension ConversationInputBarViewController: UIDropInteractionDelegate {
-    
+
     @available(iOS 11.0, *)
     public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
-        
+
         for dragItem in session.items {
             dragItem.itemProvider.loadObject(ofClass: UIImage.self, completionHandler: { object, error in
-                
+
                 guard error == nil else { return zmLog.error("Failed to load dragged item: \(error!.localizedDescription)") }
                 guard let draggedImage = object as? UIImage else { return }
-                
+
                 DispatchQueue.main.async {
-                    let confirmImageViewController = ConfirmAssetViewController()
-                    confirmImageViewController.transitioningDelegate = FastTransitioningDelegate.sharedDelegate
-                    confirmImageViewController.image = draggedImage
+                    let context = ConfirmAssetViewController.Context(asset: .image(mediaAsset: draggedImage),
+                                                                     onConfirm: { [unowned self] (editedImage: UIImage?) in
+                                                                                    self.dismiss(animated: true) {
+                                                                                        if let draggedImageData = draggedImage.pngData() {
+                                                                                            self.sendController.sendMessage(withImageData: draggedImageData)
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                     onCancel: { [unowned self] in
+                                                                                    self.dismiss(animated: true)
+                                                                                }
+                    )
+
+                    let confirmImageViewController = ConfirmAssetViewController(context: context)
                     confirmImageViewController.previewTitle = self.conversation.displayName.localizedUppercase
-                    confirmImageViewController.onConfirm = { [unowned self] (editedImage: UIImage?) in
-                        self.dismiss(animated: true) {
-                            if let draggedImageData = draggedImage.pngData() {
-                                self.sendController.sendMessage(withImageData: draggedImageData, completion: .none)
-                            }
-                        }
-                    }
-                    
-                    confirmImageViewController.onCancel = { [unowned self] in
-                        self.dismiss(animated: true)
-                    }
                     self.present(confirmImageViewController, animated: true) {
                             }
                 }
@@ -55,15 +57,15 @@ extension ConversationInputBarViewController: UIDropInteractionDelegate {
             break
         }
     }
-    
+
     @available(iOS 11.0, *)
     public func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
         return UIDropProposal(operation: .copy)
     }
-    
+
     @available(iOS 11.0, *)
     public func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
         return session.canLoadObjects(ofClass: UIImage.self)
     }
-    
+
 }

@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 protocol ShareDestination: Hashable {
     var displayName: String { get }
@@ -32,8 +34,7 @@ protocol Shareable {
     func previewView() -> UIView?
 }
 
-final class ShareViewController<D: ShareDestination, S: Shareable>: UIViewController, UITableViewDelegate, UITableViewDataSource, UIViewControllerTransitioningDelegate,
-    TokenFieldDelegate {
+final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Shareable>: UIViewController, UITableViewDelegate, UITableViewDataSource, UIViewControllerTransitioningDelegate {
     let destinations: [D]
     let shareable: S
     private(set) var selectedDestinations: Set<D> = Set() {
@@ -77,7 +78,7 @@ final class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContro
         self.showPreview = showPreview
         self.allowsMultipleSelection = allowsMultipleSelection
         super.init(nibName: nil, bundle: nil)
-        self.transitioningDelegate = self
+        transitioningDelegate = self
         
         let messagePreviewAppearance = MessagePreviewView.appearance(whenContainedInInstancesOf: [ShareViewController.self])
         messagePreviewAppearance.colorSchemeVariant = .light
@@ -94,10 +95,11 @@ final class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContro
                                                name: UIResponder.keyboardDidChangeFrameNotification,
                                                object: nil)
 
-        self.createViews()
-        self.createConstraints()
+        createViews()
+        createConstraints()
     }
     
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -144,11 +146,13 @@ final class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContro
     
     // MARK: - Actions
     
-    @objc func onCloseButtonPressed(sender: AnyObject?) {
-        self.onDismiss?(self, false)
+    @objc
+    func onCloseButtonPressed(sender: AnyObject?) {
+        onDismiss?(self, false)
     }
     
-    @objc func onSendButtonPressed(sender: AnyObject?) {
+    @objc
+    func onSendButtonPressed(sender: AnyObject?) {
         if self.selectedDestinations.count > 0 {
             self.shareable.share(to: Array(self.selectedDestinations))
             self.onDismiss?(self, true)
@@ -181,7 +185,7 @@ final class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContro
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let destination = self.filteredDestinations[indexPath.row]
         
-        self.tokenField.addToken(forTitle: destination.displayName, representedObject: destination)
+        tokenField.addToken(forTitle: destination.displayName, representedObject: destination)
         
         self.selectedDestinations.insert(destination)
         
@@ -228,23 +232,26 @@ final class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContro
         })
     }
 
-    @objc func keyboardFrameDidChange(notification: Notification) {
+    @objc
+    private func keyboardFrameDidChange(notification: Notification) {
         updatePopoverFrame()
     }
+}
 
-    // MARK: - TokenFieldDelegate
-        
-    func tokenField(_ tokenField: TokenField, changedTokensTo tokens: [Token]) {
-        self.selectedDestinations = Set(tokens.map { $0.representedObject as! D })
-        self.destinationsTableView.reloadData()
+// MARK: - TokenFieldDelegate
+
+extension ShareViewController: TokenFieldDelegate {
+    func tokenField(_ tokenField: TokenField, changedTokensTo tokens: [Token<NSObjectProtocol>]) {
+        selectedDestinations = Set(tokens.map { $0.representedObject.value as! D })
+        destinationsTableView.reloadData()
     }
     
     func tokenField(_ tokenField: TokenField, changedFilterTextTo text: String) {
-        self.filterString = text
+        filterString = text
     }
     
     func tokenFieldDidConfirmSelection(_ controller: TokenField) {
         //no-op
     }
-}
 
+}

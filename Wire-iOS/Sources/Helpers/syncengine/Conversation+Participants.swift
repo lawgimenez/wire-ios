@@ -17,26 +17,34 @@
 //
 
 
-import Foundation
+import WireSyncEngine
 
 extension ZMConversation {
     private enum NetworkError: Error {
         case offline
     }
+
+    static var useConferenceCalling: Bool {
+        return Settings.shared[.conferenceCalling] == true
+    }
     
-    @objc static let maxVideoCallParticipants: Int = 4
+    static var maxVideoCallParticipants: Int {
+        return useConferenceCalling ? maxParticipants : legacyGroupVideoParticipantLimit
+    }
+
+    static let legacyGroupVideoParticipantLimit: Int = 4
+
+    static let maxParticipants: Int = 500
     
-    @objc static let maxParticipants: Int = 500
-    
-    @objc static var maxParticipantsExcludingSelf: Int {
+    static var maxParticipantsExcludingSelf: Int {
         return maxParticipants - 1
     }
     
-    @objc static var maxVideoCallParticipantsExcludingSelf: Int {
+    static var maxVideoCallParticipantsExcludingSelf: Int {
         return maxVideoCallParticipants - 1
     }
     
-    @objc var freeParticipantSlots: Int {
+    var freeParticipantSlots: Int {
         return type(of: self).maxParticipants - localParticipants.count
     }
     
@@ -54,11 +62,6 @@ extension ZMConversation {
             default: break
             }
         }
-    }
-    
-    @objc (removeParticipantOrShowError:)
-    func removeOrShowError(participant user: UserType) {
-        removeOrShowError(participant: user, completion: nil)
     }
     
     func removeOrShowError(participant user: UserType, completion: ((VoidResult)->())? = nil) {

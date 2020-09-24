@@ -17,9 +17,9 @@
 //
 
 import Foundation
+import WireDataModel
 
-
-class TopPeopleLineCollectionViewController: NSObject {
+final class TopPeopleLineCollectionViewController: NSObject {
 
     var topPeople = [ZMConversation]()
 

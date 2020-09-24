@@ -16,9 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
 import Cartography
 import WireSyncEngine
+import UIKit
+import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "UI")
 
@@ -30,19 +31,23 @@ final class AppLockViewController: UIViewController {
     // otherwise it will be deallocated and `passwordController.alertController` reference will be lost
     private var passwordController: RequestPasswordController?
     private var appLockPresenter: AppLockPresenter?
-    
+
     private var dimContents: Bool = false {
         didSet {
             view.window?.isHidden = !dimContents
-            
+
             if dimContents {
                 AppDelegate.shared.notificationsWindow?.makeKey()
             } else {
+                AppDelegate.shared.notificationsWindow?.isHidden = !dimContents
                 AppDelegate.shared.window?.makeKey()
             }
         }
     }
     
+    private weak var unlockViewController: UnlockViewController?
+    private weak var unlockScreenWrapper: UIViewController?
+
     static let shared = AppLockViewController()
 
     static var isLocked: Bool {
@@ -52,25 +57,25 @@ final class AppLockViewController: UIViewController {
     convenience init() {
         self.init(nibName:nil, bundle:nil)
     }
-    
+
     override var prefersStatusBarHidden: Bool {
         return true
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         self.appLockPresenter = AppLockPresenter(userInterface: self)
-        
-        self.lockView = AppLockView()
+
+        lockView = AppLockView()
         self.lockView.onReauthRequested = { [weak self] in
             guard let `self` = self else { return }
             self.appLockPresenter?.requireAuthentication()
         }
-        
+
         self.spinner.hidesWhenStopped = true
         self.spinner.translatesAutoresizingMaskIntoConstraints = false
-        
+
         self.view.addSubview(self.lockView)
         self.view.addSubview(self.spinner)
 
@@ -83,30 +88,73 @@ final class AppLockViewController: UIViewController {
 
         self.dimContents = false
     }
+    
+    private func presentCustomPassCodeUnlockScreenIfNeeded(message: String,
+                                                           callback: @escaping RequestPasswordController.Callback) {
+        if unlockViewController == nil {
+            let viewController = UnlockViewController()
+            
+            let keyboardAvoidingViewController = KeyboardAvoidingViewController(viewController: viewController)
+            let navigationController = keyboardAvoidingViewController.wrapInNavigationController(navigationBarClass: TransparentNavigationBar.self)
+            navigationController.modalPresentationStyle = .fullScreen
+            present(navigationController, animated: false)
+            
+            unlockScreenWrapper = navigationController
+            unlockViewController = viewController
+        }
+        
+        guard let unlockViewController = unlockViewController else { return }
+        
+        if message == AuthenticationMessageKey.wrongPassword {
+            unlockViewController.showWrongPasscodeMessage()
+        }
+        
+        unlockViewController.callback = callback
+    }
+    
+    private func presentRequestPasswordController(message: String,
+                                                  callback: @escaping RequestPasswordController.Callback) {
+        let passwordController = RequestPasswordController(context: .unlock(message: message.localized),
+                                                           callback: callback)
+        self.passwordController = passwordController
+        present(passwordController.alertController, animated: true)
+    }
 }
 
 // MARK: - AppLockManagerDelegate
 extension AppLockViewController: AppLockUserInterface {
-    func presentRequestPasswordController(with message: String, callback: @escaping RequestPasswordController.Callback) {
-        let passwordController = RequestPasswordController(context: .unlock(message: message.localized), callback: callback)
-        self.passwordController = passwordController
-        self.present(passwordController.alertController, animated: true, completion: nil)
+    func dismissUnlockScreen() {
+        unlockScreenWrapper?.dismiss(animated: false)
     }
     
-    func setSpinner(animating: Bool) {
-        if animating {
-            self.spinner.startAnimating()
+    func presentUnlockScreen(with message: String,
+                             callback: @escaping RequestPasswordController.Callback) {
+        
+        if AppLock.rules.useCustomCodeInsteadOfAccountPassword {
+            presentCustomPassCodeUnlockScreenIfNeeded(message: message, callback: callback)
         } else {
-            self.spinner.stopAnimating()
+            presentRequestPasswordController(message: message, callback: callback)
         }
     }
     
-    func setReauth(visible: Bool) {
-        self.lockView.showReauth = visible
+    func presentCreatePasscodeScreen(callback: ResultHandler?) {
+        present(PasscodeSetupViewController.createKeyboardAvoidingFullScreenView(callback: callback, variant: .dark),
+                animated: false)
     }
-    
+
+    func setSpinner(animating: Bool) {
+        if animating {
+            spinner.startAnimating()
+        } else {
+            spinner.stopAnimating()
+        }
+    }
+
+    func setReauth(visible: Bool) {
+        lockView.showReauth = visible
+    }
+
     func setContents(dimmed: Bool) {
-        self.dimContents = dimmed
+        dimContents = dimmed
     }
 }
-

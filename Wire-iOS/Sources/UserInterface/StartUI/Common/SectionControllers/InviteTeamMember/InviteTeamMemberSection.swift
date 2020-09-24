@@ -17,12 +17,14 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 protocol InviteTeamMemberSectionDelegate: class {
     func inviteSectionDidRequestTeamManagement()
 }
 
-class InviteTeamMemberSection: NSObject, CollectionViewSectionController {
+final class InviteTeamMemberSection: NSObject, CollectionViewSectionController {
     
     var team: Team?
     weak var delegate: InviteTeamMemberSectionDelegate?

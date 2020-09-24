@@ -19,24 +19,31 @@
 import XCTest
 @testable import Wire
 
-final class SettingsTableViewControllerSnapshotTests: CoreDataSnapshotTestCase {
-    
+final class SettingsTableViewControllerSnapshotTests: XCTestCase {
+    var coreDataFixture: CoreDataFixture!
+
     var sut: SettingsTableViewController!
 	var settingsCellDescriptorFactory: SettingsCellDescriptorFactory!
-	
+    var settingsPropertyFactory: SettingsPropertyFactory!
+
 	override func setUp() {
 		super.setUp()
 
-		let settingsPropertyFactory = SettingsPropertyFactory(userSession: nil, selfUser: nil)
+        coreDataFixture = CoreDataFixture()
+
+		settingsPropertyFactory = SettingsPropertyFactory(userSession: nil, selfUser: nil)
 		settingsCellDescriptorFactory = SettingsCellDescriptorFactory(settingsPropertyFactory: settingsPropertyFactory, userRightInterfaceType: MockUserRight.self)
-		
+
 		MockUserRight.isPermitted = true
 	}
 
     override func tearDown() {
         sut = nil
 		settingsCellDescriptorFactory = nil
-		
+		settingsPropertyFactory = nil
+
+        coreDataFixture = nil
+
         super.tearDown()
 	}
 
@@ -46,7 +53,7 @@ final class SettingsTableViewControllerSnapshotTests: CoreDataSnapshotTestCase {
 
         sut.view.backgroundColor = .black
 
-        verify(view: sut.view)
+        verify(matching: sut)
     }
 
     func testForAccountGroup() {
@@ -55,7 +62,7 @@ final class SettingsTableViewControllerSnapshotTests: CoreDataSnapshotTestCase {
 
         sut.view.backgroundColor = .black
 
-        verify(view: sut.view)
+        verify(matching: sut)
     }
 
     func testForAccountGroupWithDisabledEditing() {
@@ -66,27 +73,52 @@ final class SettingsTableViewControllerSnapshotTests: CoreDataSnapshotTestCase {
 
         sut.view.backgroundColor = .black
 
-        verify(view: sut.view)
+        verify(matching: sut)
     }
 
-    //MARK: - options
+    // MARK: - options
     func testForOptionsGroup() {
-        let group = settingsCellDescriptorFactory.optionsGroup()
+        Settings.shared[.chatHeadsDisabled] = false
+        let group = settingsCellDescriptorFactory.optionsGroup
         sut = SettingsTableViewController(group: group as! SettingsInternalGroupCellDescriptorType)
 
         sut.view.backgroundColor = .black
 
-        verify(view: sut.view)
+        verify(matching: sut)
     }
 
     func testForOptionsGroupScrollToBottom() {
-        let group = settingsCellDescriptorFactory.optionsGroup()
+        setToLightTheme()
+        
+        let group = settingsCellDescriptorFactory.optionsGroup
         sut = SettingsTableViewController(group: group as! SettingsInternalGroupCellDescriptorType)
 
         sut.view.backgroundColor = .black
 
         sut.tableView.setContentOffset(CGPoint(x:0, y:CGFloat.greatestFiniteMagnitude), animated: false)
 
-        verify(view: sut.view)
+        verify(matching: sut)
+    }
+
+    // MARK: - dark theme
+    func testForDarkThemeOptionsGroup() {
+        setToLightTheme()
+
+        let group = SettingsCellDescriptorFactory.darkThemeGroup(for: settingsPropertyFactory.property(.darkMode))
+        sut = SettingsTableViewController(group: group as! SettingsInternalGroupCellDescriptorType)
+
+        sut.view.backgroundColor = .black
+
+        verify(matching: sut)
+    }
+    
+    // MARK: - advanced
+    func testForAdvancedGroup() {
+        let group = settingsCellDescriptorFactory.advancedGroup
+        sut = SettingsTableViewController(group: group as! SettingsInternalGroupCellDescriptorType)
+        
+        sut.view.backgroundColor = .black
+        
+        verify(matching: sut)
     }
 }

@@ -17,13 +17,11 @@
 //
 
 import Foundation
+import UIKit
 
-class AccessoryTextFieldCell: UITableViewCell {
+final class AccessoryTextFieldCell: UITableViewCell {
 
-    let textField: AccessoryTextField = {
-        let textField = AccessoryTextField()
-        return textField
-    }()
+    let textField = AccessoryTextField()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -34,6 +32,7 @@ class AccessoryTextFieldCell: UITableViewCell {
         backgroundColor = .clear
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

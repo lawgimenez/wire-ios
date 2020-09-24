@@ -16,7 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-@objc
+import UIKit
+
 protocol TokenizedTextViewDelegate: class {
     func tokenizedTextView(_ textView: TokenizedTextView, didTapTextRange range: NSRange, fraction: CGFloat)
     func tokenizedTextView(_ textView: TokenizedTextView, textContainerInsetChanged textContainerInset: UIEdgeInsets)
@@ -26,10 +27,8 @@ protocol TokenizedTextViewDelegate: class {
 //! Shouldn't be used anywhere else.
 // TODO: as a inner class of TokenField
 
-@objc
 final class TokenizedTextView: TextView {
 
-    @objc
     weak var tokenizedTextViewDelegate: TokenizedTextViewDelegate?
 
     private lazy var tapSelectionGestureRecognizer: UITapGestureRecognizer = {
@@ -76,9 +75,12 @@ final class TokenizedTextView: TextView {
         location.y -= textContainerInset.top
 
         // Find the character that's been tapped on
-        var characterIndex: Int
+        var characterIndex: Int = 0
         var fraction: CGFloat = 0
-        characterIndex = layoutManager.characterIndex(for: location, in: textContainer, fractionOfDistanceBetweenInsertionPoints: UnsafeMutablePointer<CGFloat>(mutating: &fraction))
+        
+        withUnsafePointer(to: &fraction) {
+            characterIndex = layoutManager.characterIndex(for: location, in: textContainer, fractionOfDistanceBetweenInsertionPoints: UnsafeMutablePointer<CGFloat>(mutating: $0))
+        }
 
         tokenizedTextViewDelegate?.tokenizedTextView(self, didTapTextRange: NSRange(location: characterIndex, length: 1), fraction: fraction)
     }

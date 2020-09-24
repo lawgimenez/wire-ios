@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import UIKit
+import WireSyncEngine
 
 private var ZM_UNUSED = "UI"
 private var overridenAccentColor: ZMAccentColor = .undefined
@@ -29,9 +31,9 @@ extension UIColor {
     ///
     /// - Parameter accentColor: the accent color
     class func setAccent(_ accentColor: ZMAccentColor) {
-        ZMUserSession.shared()?.enqueueChanges({
-            ZMUser.selfUser()?.accentColorValue = accentColor
-        })
+        ZMUserSession.shared()?.enqueue {
+            SelfUser.provider?.selfUser.accentColorValue = accentColor
+        }
     }
     
     class func indexedAccentColor() -> ZMAccentColor {
@@ -39,15 +41,17 @@ extension UIColor {
         if overridenAccentColor != .undefined {
             return overridenAccentColor
         }
-        
-        guard let activeUserSession = SessionManager.shared?.activeUserSession,
-            ZMUser.selfUser(inUserSession: activeUserSession).accentColorValue != .undefined else {
-                // priority 3: default color
-                return .strongBlue
+
+        guard
+            let activeUserSession = SessionManager.shared?.activeUserSession,
+            activeUserSession.selfUser.accentColorValue != .undefined
+        else {
+            // priority 3: default color
+            return .strongBlue
         }
         
         // priority 2: color from self user
-        return ZMUser.selfUser(inUserSession: activeUserSession).accentColorValue
+        return activeUserSession.selfUser.accentColorValue
     }
     
     
@@ -62,11 +66,11 @@ extension UIColor {
         overridenAccentColor = overrideColor
     }
 
-    @objc static var accentDarken: UIColor {
+    static var accentDarken: UIColor {
         return accent().mix(.black, amount: 0.1).withAlphaComponent(0.32)
     }
 
-    @objc static var accentDimmedFlat: UIColor {
+    static var accentDimmedFlat: UIColor {
         if ColorScheme.default.variant == .light {
             return accent().withAlphaComponent(0.16).removeAlphaByBlending(with: .white)
         } else {
@@ -74,12 +78,11 @@ extension UIColor {
         }
     }
 
-    @objc (accentColor)
     class func accent() -> UIColor {
         return UIColor(fromZMAccentColor: indexedAccentColor())
     }
 
-    @objc static func buttonEmptyText(variant: ColorSchemeVariant) -> UIColor {
+    static func buttonEmptyText(variant: ColorSchemeVariant) -> UIColor {
         switch variant {
         case .dark:
             return .white
